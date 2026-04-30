@@ -140,7 +140,3 @@ pytest
 [MovieLens 1M](https://grouplens.org/datasets/movielens/1m/) — 1,000,209 ratings by 6,040 users on 3,706 movies.
 
 F. Maxwell Harper and Joseph A. Konstan. 2015. The MovieLens Datasets: History and Context. ACM TiiS 5(4).
-
-## License
-
-For academic use only.
