@@ -1,0 +1,35 @@
+# config.yaml
+# Master configuration for the SVD Recommendation System pipeline.
+# All hardcoded values in main.py are sourced from here.
+
+dataset:
+  url:           "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
+  local_dir:     "../data"
+  ratings_path:  "../data/ml-latest-small/ratings.csv"
+  zip_filename:  "ml-latest-small.zip"
+  rating_scale:  [0.5, 5.0]          # valid rating bounds (inclusive)
+
+split:
+  test_fraction: 0.20                 # fraction of each user's ratings held out
+  random_state:  42                   # fixed seed for reproducibility
+
+preprocessing:
+  imputation_strategy: "zero"         # options: "zero" | "rowmean" | "colmean"
+
+model:
+  k_values:          [5, 10, 20, 50, 100, 150, 200]
+  variance_threshold: 0.90            # for automatic k selection (90% EV criterion)
+  rating_clip:       [0.5, 5.0]       # clamp predictions to valid range
+
+sgd_mf:
+  enabled:           true             # set false to skip the SGD-MF baseline
+  learning_rate:     0.005
+  regularization:    0.02
+  epochs:            20
+  log_interval:      5                # print train RMSE every N epochs
+
+output:
+  results_csv:  "../outputs/results_table.csv"
+  plots_dir:    "../outputs/plots"
+  log_file:     "../outputs/run.log"
+  log_level:    "INFO"                # DEBUG | INFO | WARNING

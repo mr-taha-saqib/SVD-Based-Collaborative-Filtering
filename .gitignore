@@ -1,0 +1,29 @@
+# ── Python cache ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# ── Raw dataset files (auto-downloaded at runtime) ────────────
+data/ml-latest-small/
+data/ml-latest-small.zip
+data/ml-1m/
+data/ml-1m.zip
+
+# ── Claude Code internal files ────────────────────────────────
+.claude/
+
+# ── Generated / packaged artefacts ───────────────────────────
+SVD_Project.zip
+generate_speech_doc.py
+Presentation_Speech.docx
+
+# ── Logs ──────────────────────────────────────────────────────
+outputs/run.log
+*.log
+
+# ── OS / IDE ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
