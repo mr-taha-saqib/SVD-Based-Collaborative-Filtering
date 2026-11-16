@@ -1,0 +1,32 @@
+........................................................................ [ 50%]
+.......................................................................  [100%]
+=============================== warnings summary ===============================
+tests/test_pipeline.py::TestEdgeCases::test_all_nan_column_item_mean_fallback
+  /home/claude/svd-based-collaborative-filtering/src/evaluation.py:294: RuntimeWarning: Mean of empty slice
+    col_means = np.nanmean(R, axis=0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.3-final-0 ________________
+
+Name                    Stmts   Miss  Cover
+-------------------------------------------
+src/api.py                228     11    95%
+src/data_loader.py        343     88    74%
+src/evaluation.py         208      5    98%
+src/logging_utils.py       35     24    31%
+src/main.py               189     37    80%
+src/monitoring.py         204     31    85%
+src/ranking.py             86      2    98%
+src/recommender.py        189      4    98%
+src/registry.py           158     16    90%
+src/retrain.py            242     42    83%
+src/run_ml1m.py            59     59     0%
+src/settings.py            59      7    88%
+src/svd_model.py          106     10    91%
+src/tracking.py           105     10    90%
+src/training.py            74      4    95%
+src/visualizations.py     227     74    67%
+-------------------------------------------
+TOTAL                    2512    424    83%
+143 passed, 1 warning in 36.69s

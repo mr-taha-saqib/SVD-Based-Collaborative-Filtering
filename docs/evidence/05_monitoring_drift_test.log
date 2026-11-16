@@ -1,0 +1,182 @@
+### Phase 1: normal traffic (fresh API process): 300 recommendation requests + 40 feedback ratings (synthetic, random)
+{
+  "mode": "normal",
+  "status_codes": {
+    "200": 300
+  },
+  "input_drift": {
+    "signal": "requesting-user activity profile vs training users (PSI)",
+    "psi": 0.0078,
+    "status": "ok",
+    "observed_counts": {
+      "0-19": 59,
+      "20-49": 97,
+      "50-99": 60,
+      "100-199": 42,
+      "200-499": 32,
+      "500-inf": 10,
+      "unknown_user": 0
+    }
+  },
+  "prediction_drift": {
+    "signal": "popularity deciles of recommended items vs build-time reference (PSI)",
+    "psi": 0.0006,
+    "status": "ok",
+    "based_on_svd_requests": 300
+  },
+  "rates": {
+    "cold_start_fallback": 0.0,
+    "unknown_user": 0.0,
+    "short_response": 0.0
+  },
+  "observed_performance": {
+    "status": "insufficient_labels",
+    "n_labelled": 0,
+    "required": 30,
+    "note": "No performance claim is made without enough labelled feedback."
+  },
+  "latency_ms": {
+    "p50": 1.231,
+    "p95": 1.384,
+    "p99": 1.633
+  }
+}
+{
+  "mode": "feedback",
+  "status_codes": {
+    "202": 40
+  },
+  "input_drift": {
+    "signal": "requesting-user activity profile vs training users (PSI)",
+    "psi": 0.0078,
+    "status": "ok",
+    "observed_counts": {
+      "0-19": 59,
+      "20-49": 97,
+      "50-99": 60,
+      "100-199": 42,
+      "200-499": 32,
+      "500-inf": 10,
+      "unknown_user": 0
+    }
+  },
+  "prediction_drift": {
+    "signal": "popularity deciles of recommended items vs build-time reference (PSI)",
+    "psi": 0.0006,
+    "status": "ok",
+    "based_on_svd_requests": 300
+  },
+  "rates": {
+    "cold_start_fallback": 0.0,
+    "unknown_user": 0.0,
+    "short_response": 0.0
+  },
+  "observed_performance": {
+    "status": "available",
+    "n_labelled": 40,
+    "rmse": 2.0965458745671226,
+    "mae": 1.7282411116916698,
+    "mean_error": 1.328822338988236,
+    "note": "Computed from delayed feedback ratings (ground truth)."
+  },
+  "latency_ms": {
+    "p50": 1.231,
+    "p95": 1.418,
+    "p99": 1.685
+  }
+}
+### Phase 2: controlled drift (fresh API process): 300 requests from unknown user ids only
+{
+  "mode": "drift",
+  "status_codes": {
+    "200": 300
+  },
+  "input_drift": {
+    "signal": "requesting-user activity profile vs training users (PSI)",
+    "psi": 16.7764,
+    "status": "alert",
+    "observed_counts": {
+      "0-19": 0,
+      "20-49": 0,
+      "50-99": 0,
+      "100-199": 0,
+      "200-499": 0,
+      "500-inf": 0,
+      "unknown_user": 300
+    }
+  },
+  "prediction_drift": {
+    "signal": "popularity deciles of recommended items vs build-time reference (PSI)",
+    "psi": null,
+    "status": "insufficient_data",
+    "based_on_svd_requests": 0
+  },
+  "rates": {
+    "cold_start_fallback": 1.0,
+    "unknown_user": 1.0,
+    "short_response": 0.0
+  },
+  "observed_performance": {
+    "status": "insufficient_labels",
+    "n_labelled": 0,
+    "required": 30,
+    "note": "No performance claim is made without enough labelled feedback."
+  },
+  "latency_ms": {
+    "p50": 1.276,
+    "p95": 1.858,
+    "p99": 3.087
+  }
+}
+### /metrics excerpt
+recsys_recommendations_total{strategy="popularity_fallback"} 300.0
+recsys_cold_start_total 300.0
+recsys_cold_start_created 1.794865787320928e+09
+recsys_model_info{version="svd-k20-fce385dc-c6b9d577"} 1.0
+recsys_drift_psi{signal="input_user_activity"} 16.77642473578991
+### Offline report rebuilt from the pseudonymised event log (both phases)
+{
+ "totals": {
+  "recommendation_requests": 600,
+  "items_recommended": 6000,
+  "feedback": 40,
+  "cold_start_fallback": 300,
+  "unknown_user": 300
+ },
+ "rates": {
+  "cold_start_fallback": 0.5,
+  "unknown_user": 0.5,
+  "short_response": 0.0
+ },
+ "input_drift": {
+  "signal": "requesting-user activity profile vs training users (PSI)",
+  "psi": 4.6102,
+  "status": "alert",
+  "observed_counts": {
+   "0-19": 59,
+   "20-49": 97,
+   "50-99": 60,
+   "100-199": 42,
+   "200-499": 32,
+   "500-inf": 10,
+   "unknown_user": 300
+  }
+ },
+ "prediction_drift": {
+  "signal": "popularity deciles of recommended items vs build-time reference (PSI)",
+  "psi": 0.0006,
+  "status": "ok",
+  "based_on_svd_requests": 300
+ },
+ "observed_performance": {
+  "status": "available",
+  "n_labelled": 40,
+  "rmse": 2.0965509425601847,
+  "mae": 1.7282425,
+  "mean_error": 1.3288275000000003,
+  "note": "Computed from delayed feedback ratings (ground truth)."
+ },
+ "malformed_lines": 0
+}
+### first event line (user id pseudonymised)
+{"ts": "2026-11-16T21:49:43+00:00", "event": "recommendation", "model_version": "svd-k20-fce385dc-c6b9d577", "user": "ac5259b72eb76fcb", "activity": "0-19", "strategy": "svd", "n_requested": 10, "n_returned": 10, "popularity_bins": [6, 7, 7, 7, 8, 7, 7, 7, 6, 7], "latency_ms": 0.966}

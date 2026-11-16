@@ -1,0 +1,77 @@
+02:45:59  INFO      main  SVD-Based Collaborative Filtering - corrected train/validation/test pipeline
+02:45:59  INFO      data_loader  Loaded 100836 ratings | 610 users | 9724 items | duplicates resolved: 0
+02:46:00  INFO      data_loader  Split -> train 70579 | validation 10093 | test 20164 (users kept train-only: 0)
+02:46:00  INFO      data_loader  Matrix shape: 610 x 8578 | Observed: 70579 | Density: 1.3488%
+02:46:02  INFO      training  SVD of 610x8578 train matrix via full in 2.50s
+02:46:03  INFO      evaluation  SVD k=5                         RMSE=0.8755  MAE=0.6714  N=10093  fallback=433
+02:46:03  INFO      evaluation  SVD k=10                        RMSE=0.8743  MAE=0.6702  N=10093  fallback=433
+02:46:03  INFO      evaluation  SVD k=20                        RMSE=0.8729  MAE=0.6691  N=10093  fallback=433
+02:46:03  INFO      evaluation  SVD k=50                        RMSE=0.8767  MAE=0.6724  N=10093  fallback=433
+02:46:03  INFO      evaluation  SVD k=100                       RMSE=0.8798  MAE=0.6751  N=10093  fallback=433
+02:46:03  INFO      evaluation  SVD k=150                       RMSE=0.8817  MAE=0.6769  N=10093  fallback=433
+02:46:03  INFO      evaluation  SVD k=200                       RMSE=0.8820  MAE=0.6772  N=10093  fallback=433
+02:46:03  INFO      training  Validation-selected rank k=20 (validation RMSE 0.8729)
+02:46:03  INFO      svd_model  Variance criterion (tau=90%): k* = 263  (EV=90.05%)
+02:46:03  INFO      evaluation  SGD-MF training: k=20  lr=0.0050  reg=0.0200  epochs=20  |Omega|=70579
+02:46:11  INFO      evaluation  SGD-MF epoch   5/20  train RMSE=0.8789
+02:46:18  INFO      evaluation  SGD-MF epoch  10/20  train RMSE=0.8540
+02:46:25  INFO      evaluation  SGD-MF epoch  15/20  train RMSE=0.8408
+02:46:29  INFO      evaluation  SGD-MF epoch  20/20  train RMSE=0.8318
+02:46:29  INFO      evaluation  Global Mean                     RMSE=1.0438  MAE=0.8290  N=10093  fallback=433
+02:46:29  INFO      evaluation  User Mean                       RMSE=0.9322  MAE=0.7311  N=10093  fallback=433
+02:46:29  INFO      evaluation  Item Mean                       RMSE=0.9793  MAE=0.7582  N=10093  fallback=433
+02:46:29  INFO      evaluation  User+Item Bias                  RMSE=0.8826  MAE=0.6775  N=10093  fallback=433
+02:46:30  INFO      ranking  User+Item Bias         validation P@10=0.0017 R@10=0.0014 NDCG@10=0.0022 cov=0.005 users=581
+02:46:30  INFO      evaluation  SVD k=20                        RMSE=0.8729  MAE=0.6691  N=10093  fallback=433
+02:46:30  INFO      ranking  SVD k=20               validation P@10=0.0071 R@10=0.0040 NDCG@10=0.0092 cov=0.031 users=581
+02:46:30  INFO      evaluation  SGD-MF k=20                     RMSE=0.8613  MAE=0.6657  N=10093  fallback=433
+02:46:30  INFO      ranking  Most Popular           validation P@10=0.0568 R@10=0.0966 NDCG@10=0.0969 cov=0.013 users=581
+02:46:30  INFO      main  ============================================================
+02:46:30  INFO      main  FINAL TEST EVALUATION: k=20 was fixed on validation before this point
+02:46:30  INFO      main  ============================================================
+02:46:30  INFO      evaluation  Global Mean                     RMSE=1.0442  MAE=0.8266  N=20164  fallback=896
+02:46:30  INFO      evaluation  User Mean                       RMSE=0.9435  MAE=0.7350  N=20164  fallback=896
+02:46:30  INFO      evaluation  Item Mean                       RMSE=0.9782  MAE=0.7544  N=20164  fallback=896
+02:46:30  INFO      evaluation  User+Item Bias                  RMSE=0.8943  MAE=0.6834  N=20164  fallback=896
+02:46:30  INFO      ranking  User+Item Bias         test       P@10=0.0028 R@10=0.0009 NDCG@10=0.0024 cov=0.005 users=604
+02:46:30  INFO      evaluation  SVD k=20                        RMSE=0.8853  MAE=0.6754  N=20164  fallback=896
+02:46:30  INFO      ranking  SVD k=20               test       P@10=0.0103 R@10=0.0022 NDCG@10=0.0109 cov=0.029 users=604
+02:46:30  INFO      evaluation  SGD-MF k=20                     RMSE=0.8737  MAE=0.6708  N=20164  fallback=896
+02:46:30  INFO      ranking  Most Popular           test       P@10=0.1108 R@10=0.0923 NDCG@10=0.1470 cov=0.019 users=604
+
+VALIDATION (model selection)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 1.0438 0.8290           NaN        NaN      NaN               NaN
+     User Mean 0.9322 0.7311           NaN        NaN      NaN               NaN
+     Item Mean 0.9793 0.7582           NaN        NaN      NaN               NaN
+User+Item Bias 0.8826 0.6775        0.0017     0.0014   0.0022            0.0054
+      SVD k=20 0.8729 0.6691        0.0071     0.0040   0.0092            0.0311
+   SGD-MF k=20 0.8613 0.6657           NaN        NaN      NaN               NaN
+  Most Popular    NaN    NaN        0.0568     0.0966   0.0969            0.0132
+
+TEST (final, evaluated once)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 1.0442 0.8266           NaN        NaN      NaN               NaN
+     User Mean 0.9435 0.7350           NaN        NaN      NaN               NaN
+     Item Mean 0.9782 0.7544           NaN        NaN      NaN               NaN
+User+Item Bias 0.8943 0.6834        0.0028     0.0009   0.0024            0.0054
+      SVD k=20 0.8853 0.6754        0.0103     0.0022   0.0109            0.0294
+   SGD-MF k=20 0.8737 0.6708           NaN        NaN      NaN               NaN
+  Most Popular    NaN    NaN        0.1108     0.0923   0.1470            0.0186
+02:46:31  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/01_singular_value_decay.png
+02:46:31  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/02_explained_variance.png
+02:46:31  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/03_rmse_vs_k.png
+02:46:32  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/04_mae_vs_k.png
+02:46:32  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/05_rating_distribution.png
+02:46:32  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/06_sparsity_pattern.png
+02:46:32  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/08_baseline_comparison.png
+02:46:34  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/corrected/plots/09_latent_factors.png
+2026/11/17 02:46:35 INFO mlflow.store.db.utils: Creating initial MLflow database tables...
+2026/11/17 02:46:36 INFO mlflow.store.db.utils: Updating database tables
+02:46:40  INFO      tracking  MLflow tracking -> sqlite:////home/claude/svd-based-collaborative-filtering/mlflow.db (experiment svd-movie-recommender)
+02:46:41  INFO      registry  Registered model version svd-k20-fce385dc-c6b9d577
+02:46:41  INFO      tracking  MLflow registry: svd-movie-recommender version 1 registered
+02:46:41  INFO      registry  Approved model version svd-k20-fce385dc-c6b9d577 (previous: None)
+02:46:41  INFO      tracking  MLflow registry: alias 'champion' -> svd-movie-recommender version 1
+02:46:41  INFO      tracking  MLflow run 4e316c2b14884868b640f5f46af69b96 finished (svd-k20-train)
+02:46:41  INFO      main  Pipeline complete in 42.2s | k=20 | val RMSE 0.8729 | test RMSE 0.8853 | version svd-k20-fce385dc-c6b9d577
