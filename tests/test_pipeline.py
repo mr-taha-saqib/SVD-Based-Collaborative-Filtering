@@ -40,9 +40,21 @@ Test categories
    - SVD completes on a 200x150 matrix in under 5 seconds
    - SGD-MF completes 5 epochs in under 30 seconds
 
-Run with:
-    cd d:/SVD
+Run with (from the project root):
     python -m pytest tests/test_pipeline.py -v
+
+Review notes (2026-11): several assertions here could pass without checking the
+behaviour their names promise. They were strengthened, not removed:
+  * test_matrix_nan_semantics       now checks every observed entry equals its
+                                    training rating and nothing else is observed.
+  * test_centered_mean_near_zero    now checks the exact property the bias
+                                    decomposition guarantees (zero column means).
+  * test_different_seeds_...        compares (user, movie) pair sets, not one
+                                    column positionally.
+  * test_saved_csv_rmse_...         claimed a recomputation but only range-checked
+                                    a historical file; replaced by a real check of
+                                    the corrected selection and a historical-label check.
+  * test_predict_batch_vs_loop_...  marked "performance" (timing-based).
 """
 
 from __future__ import annotations
@@ -50,7 +62,6 @@ from __future__ import annotations
 import sys
 import time
 from pathlib import Path
-import os
 
 import numpy as np
 import pandas as pd
@@ -60,31 +71,29 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from data_loader import (
-    train_test_split,
     build_user_item_matrix,
     center_matrix,
     impute_matrix,
-)
-from svd_model import (
-    SVDModel,
-    fit_svd,
-    select_k_by_variance,
-    eckart_young_error,
+    train_test_split,
 )
 from evaluation import (
-    rmse,
-    mae,
+    EvalResult,
+    GlobalMeanBaseline,
+    ItemMeanBaseline,
+    SGDMatrixFactorization,
+    UserItemMeanBaseline,
+    UserMeanBaseline,
     coverage,
     evaluate_model,
-    GlobalMeanBaseline,
-    UserMeanBaseline,
-    ItemMeanBaseline,
-    UserItemMeanBaseline,
-    SGDMatrixFactorization,
+    mae,
     results_table,
-    EvalResult,
+    rmse,
 )
-
+from svd_model import (
+    eckart_young_error,
+    fit_svd,
+    select_k_by_variance,
+)
 
 # ── fixtures ──────────────────────────────────────────────────────────────────
 
@@ -152,14 +161,14 @@ class TestDataValidation:
         assert R.shape == (len(df["userId"].unique()), len(df["movieId"].unique()))
 
     def test_matrix_nan_semantics(self):
-        """Unobserved entries must be NaN, not zero."""
+        """Observed entries equal the training ratings; every other entry is NaN."""
         df = make_synthetic_ratings(n_users=10, n_items=10, density=0.20)
         train_df, _ = train_test_split(df, test_frac=0.2, random_state=0)
-        R, _, _ = build_user_item_matrix(train_df, full_df=df)
-        observed = np.count_nonzero(~np.isnan(R))
-        n_nan    = np.count_nonzero(np.isnan(R))
-        assert n_nan > 0, "Expected NaN values for unobserved entries"
-        assert observed > 0, "Expected at least one observed entry"
+        R, user_idx, item_idx = build_user_item_matrix(train_df, full_df=df)
+        assert np.count_nonzero(~np.isnan(R)) == len(train_df)
+        for row in train_df.itertuples(index=False):
+            assert R[user_idx[row.userId], item_idx[row.movieId]] == row.rating
+        assert np.count_nonzero(np.isnan(R)) == R.size - len(train_df)
 
     def test_impute_no_nan(self):
         """After imputation, no NaN should remain."""
@@ -401,13 +410,12 @@ class TestBiasDecomposition:
     """Tests for center_matrix correctness."""
 
     def test_centered_mean_near_zero(self):
-        """Mean of observed entries in R_c should be near zero."""
+        """b_i is the column mean of R - mu - b_u, so every column of R_c has zero mean."""
         R = make_low_rank_matrix()
         R_c, mu, ub, ib = center_matrix(R)
-        observed_residuals = R_c[~np.isnan(R_c)]
-        assert abs(float(np.mean(observed_residuals))) < 0.1, (
-            "Mean of centered residuals is not near zero"
-        )
+        col_means = np.nanmean(R_c, axis=0)
+        assert np.allclose(col_means[~np.isnan(col_means)], 0.0, atol=1e-10)
+        assert abs(float(np.nanmean(R_c))) < 1e-10
 
     def test_bias_reconstruction(self):
         """mu + b_u + b_i + R_c should approximately reconstruct R on Omega."""
@@ -453,8 +461,10 @@ class TestReproducibility:
         df = make_synthetic_ratings(seed=0)
         _, test1 = train_test_split(df, test_frac=0.2, random_state=1)
         _, test2 = train_test_split(df, test_frac=0.2, random_state=99)
-        # It is extremely unlikely that two random shuffles give identical test sets
-        assert not test1["movieId"].equals(test2["movieId"])
+        pairs1 = set(zip(test1["userId"], test1["movieId"]))
+        pairs2 = set(zip(test2["userId"], test2["movieId"]))
+        assert len(pairs1) == len(pairs2) > 0
+        assert pairs1 != pairs2
 
     def test_svd_deterministic(self):
         """numpy.linalg.svd is deterministic; two calls on the same matrix agree."""
@@ -577,6 +587,7 @@ class TestPerformance:
         elapsed = time.perf_counter() - t0
         assert elapsed < 30.0, f"SGD-MF took {elapsed:.2f}s > 30.0s"
 
+    @pytest.mark.performance
     def test_predict_batch_vs_loop_speed(self):
         """predict_batch must be faster than a Python loop for N=500 predictions."""
         R = make_low_rank_matrix(m=60, n=50)
@@ -628,19 +639,31 @@ class TestResultsConsistency:
         for col in ["Model", "RMSE", "MAE", "N"]:
             assert col in tbl.columns, f"Missing column: {col}"
 
-    def test_saved_csv_rmse_matches_recomputed(self):
-        """If results_table.csv exists, its SVD RMSE must be in a plausible range."""
-        csv_path = Path(__file__).parent.parent / "outputs" / "results_table.csv"
-        if not csv_path.exists():
-            pytest.skip("results_table.csv not found; run main.py first")
-        df = pd.read_csv(csv_path)
-        svd_rows = df[df["Model"].str.contains("SVD")]
-        assert len(svd_rows) > 0, "No SVD row in results_table.csv"
-        best_rmse = float(svd_rows["RMSE"].min())
-        # For MovieLens latest-small, SVD RMSE should be in [0.80, 1.05]
-        assert 0.80 <= best_rmse <= 1.05, (
-            f"SVD RMSE {best_rmse:.4f} outside expected range [0.80, 1.05]"
-        )
+    def test_historical_results_are_preserved_and_labelled(self):
+        """Historical (test-selected) results stay on disk and are labelled as such."""
+        root = Path(__file__).parent.parent
+        note = root / "outputs" / "HISTORICAL_RESULTS.md"
+        assert note.exists(), "outputs/HISTORICAL_RESULTS.md must label the historical results"
+        text = note.read_text(encoding="utf-8")
+        for name in ("results_table.csv", "results_ml1m.csv"):
+            assert (root / "outputs" / name).exists(), f"historical file {name} was removed"
+            assert name in text
+        assert "test set" in text.lower() and "historical" in text.lower()
+
+    def test_corrected_selection_is_argmin_of_validation_sweep(self):
+        """The recorded k must be the argmin of the VALIDATION sweep (not of test)."""
+        import json
+        root = Path(__file__).parent.parent / "outputs" / "corrected"
+        sweep_path, final_path = root / "k_sweep_validation.csv", root / "final_metrics.json"
+        if not (sweep_path.exists() and final_path.exists()):
+            pytest.skip("corrected outputs not generated; run src/main.py first")
+        sweep = pd.read_csv(sweep_path)
+        final = json.loads(final_path.read_text(encoding="utf-8"))
+        best = sweep.sort_values(["val_rmse", "k"]).iloc[0]
+        assert int(best["k"]) == final["selection"]["selected_k"]
+        assert final["selection"]["metric"] == "validation RMSE"
+        assert final["validation"]["svd"]["partition"] == "validation"
+        assert final["test"]["svd"]["partition"] == "test"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

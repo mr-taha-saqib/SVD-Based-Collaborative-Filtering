@@ -1,0 +1,30 @@
+[project]
+name = "svd-movie-recommender"
+version = "1.0.0"
+description = "SVD-based collaborative filtering with a FastAPI service, MLflow tracking, monitoring and gated retraining"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests", "scripts"]
+markers = [
+    "performance: timing-based checks (may be noisy on shared CI runners)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:starlette.*",
+    "ignore:.*httpx2.*",
+    "ignore:.*noload.*",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["report", "presentation", "outputs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "I"]
+ignore = ["E501", "E221", "E241", "E222", "E272", "E203", "UP007", "UP045", "B008", "B905", "E731", "UP006", "UP035"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B017", "F841"]
+"src/visualizations.py" = ["E741"]
