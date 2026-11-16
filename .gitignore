@@ -3,12 +3,39 @@ __pycache__/
 *.py[cod]
 *.pyo
 .pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
 
-# ── Raw dataset files (auto-downloaded at runtime) ────────────
+# ── Virtual environments ──────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Secrets / local configuration ─────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Raw dataset files (downloaded and checksum-verified at runtime)
 data/ml-latest-small/
 data/ml-latest-small.zip
 data/ml-1m/
 data/ml-1m.zip
+data/feedback/
+*.part
+
+# ── Model registry, experiment tracking, runtime logs ─────────
+models/
+mlflow.db
+mlruns/
+mlartifacts/
+monitoring/
+reports/retraining/
+outputs/corrected/run.log
+outputs/corrected/ml1m/run.log
 
 # ── Claude Code internal files ────────────────────────────────
 .claude/
@@ -17,6 +44,7 @@ data/ml-1m.zip
 SVD_Project.zip
 generate_speech_doc.py
 Presentation_Speech.docx
+dist/
 
 # ── Logs ──────────────────────────────────────────────────────
 outputs/run.log
@@ -27,3 +55,7 @@ outputs/run.log
 Thumbs.db
 .vscode/
 .idea/
+mlflow-data/
+
+# Acceptance-run evidence is intentionally committed
+!docs/evidence/*.log

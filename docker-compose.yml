@@ -1,0 +1,68 @@
+# docker compose --profile tools run --rm trainer   download data, train, evaluate, approve a model
+# docker compose up -d api                          start the API (serves the approved model)
+# docker compose --profile mlflow up -d mlflow      optional MLflow UI on http://localhost:5000
+#
+# All state lives in named volumes, so it survives container restarts and rebuilds:
+#   models      model registry (registry.json + versions/)
+#   monitoring  API event log (pseudonymised)
+#   feedback    ratings received through POST /feedback
+#   dataset     downloaded MovieLens archive
+#   mlflow-data MLflow SQLite database + artifacts
+services:
+  api:
+    build:
+      context: .
+      target: base
+    image: svd-recommender-api:1.0.0
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - models:/app/models
+      - monitoring:/app/monitoring
+      - feedback:/app/data/feedback
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  trainer:
+    build:
+      context: .
+      target: trainer
+    image: svd-recommender-trainer:1.0.0
+    profiles: ["tools"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MLFLOW_TRACKING_URI: sqlite:////mlflow-data/mlflow.db
+      SVD_MLFLOW_ARTIFACTS: /mlflow-data/mlartifacts
+    volumes:
+      - models:/app/models
+      - dataset:/app/data
+      - feedback:/app/data/feedback
+      - mlflow-data:/mlflow-data
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.18.0
+    profiles: ["mlflow"]
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow-data/mlflow.db
+      --artifacts-destination /mlflow-data/mlartifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow-data
+    restart: unless-stopped
+
+volumes:
+  models:
+  monitoring:
+  feedback:
+  dataset:
+  mlflow-data:
