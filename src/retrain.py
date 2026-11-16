@@ -186,7 +186,8 @@ def run_retraining(cfg: dict[str, Any], feedback: pd.DataFrame, dry_run: bool = 
     rk = int(rank_cfg.get("k", 10))
     ndcg_key = f"ndcg@{rk}"
     report_dir = resolve_path(get(cfg, "retraining.report_dir", "reports/retraining"))
-    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    # microseconds: two runs in the same second must not overwrite each other's report
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
 
     # 2-3. base data + split integrity
     if base_ratings is None:
@@ -384,7 +385,11 @@ def main(argv: list[str] | None = None) -> int:
         cfg.setdefault("mlflow", {})["enabled"] = False
     setup_logging(get(cfg, "output.log_level", "INFO"))
     if args.rollback:
-        v = ModelRegistry(resolve_path(get(cfg, "registry.dir", "models"))).rollback(args.reason)
+        try:
+            v = ModelRegistry(resolve_path(get(cfg, "registry.dir", "models"))).rollback(args.reason)
+        except RegistryError as exc:
+            logger.error("Rollback not possible: %s", exc)
+            return 1
         print(json.dumps({"rolled_back_to": v}))
         return 0
     if not args.feedback:

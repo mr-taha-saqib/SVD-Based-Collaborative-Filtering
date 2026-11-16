@@ -134,3 +134,16 @@ def test_cli_rollback_without_history_fails_cleanly(trained, cfg, monkeypatch, t
     with pytest.raises(RegistryError):
         ModelRegistry(cfg["registry"]["dir"]).rollback()
     assert np.isfinite(1.0)
+
+
+def test_back_to_back_runs_keep_separate_reports(trained, cfg, ratings):
+    _, rec = _approved(cfg)
+    for _ in range(3):
+        rt.run_retraining(cfg, generate(rec, 10, "consistent"), base_ratings=ratings)
+    assert len(list(Path(cfg["retraining"]["report_dir"]).glob("retraining-*.md"))) == 3
+
+
+def test_rollback_cli_without_history_exits_cleanly(trained, cfg, monkeypatch):
+    monkeypatch.setenv("SVD_MODEL_DIR", cfg["registry"]["dir"])
+    monkeypatch.setenv("SVD_MLFLOW_ENABLED", "false")
+    assert rt.main(["--rollback", "--reason", "test"]) == 1
