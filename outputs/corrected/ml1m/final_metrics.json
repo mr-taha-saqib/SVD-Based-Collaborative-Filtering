@@ -1,0 +1,138 @@
+{
+  "dataset": "MovieLens 1M",
+  "dataset_sha256": "aa502f42ee67a5c40cb3ea6868098d20f0df40adbd0318ce26070bc1438dfb2f",
+  "data_quality": {
+    "n_input_rows": 1000209,
+    "n_output_rows": 1000209,
+    "n_users": 6040,
+    "n_items": 3706,
+    "n_missing_values": 0,
+    "n_out_of_range": 0,
+    "n_non_integer_ids": 0,
+    "n_off_scale_step": 0,
+    "n_duplicate_pairs": 0,
+    "duplicates_policy": "keep_latest",
+    "errors": [],
+    "warnings": [],
+    "passed": true
+  },
+  "split": {
+    "method": "per-user stratified random split (seeded)",
+    "random_state": 42,
+    "validation_fraction": 0.1,
+    "test_fraction": 0.2,
+    "n_rows": {
+      "train": 700243,
+      "validation": 99950,
+      "test": 200016
+    },
+    "n_users": {
+      "train": 6040,
+      "validation": 6040,
+      "test": 6040
+    },
+    "n_items": {
+      "train": 3651,
+      "validation": 3329,
+      "test": 3477
+    },
+    "users_kept_in_train_only": 0,
+    "items_in_validation_not_in_train": 18,
+    "items_in_test_not_in_train": 45,
+    "split_sha256": "7de96e519c908a6e1bd1cb668bb42b72a1a956f32bd1ab842ed2356a490a2060",
+    "dataset_sha256": "aa502f42ee67a5c40cb3ea6868098d20f0df40adbd0318ce26070bc1438dfb2f",
+    "leakage_checks": {
+      "train_validation_shared_pairs": 0,
+      "train_test_shared_pairs": 0,
+      "validation_test_shared_pairs": 0,
+      "duplicate_pairs_within_partitions": 0,
+      "passed": true
+    }
+  },
+  "selected_k": 20,
+  "selection_metric": "validation RMSE",
+  "svd_solver": "randomized(n_components=220)",
+  "results": [
+    {
+      "model": "Global Mean",
+      "partition": "validation",
+      "rmse": 1.1161361208872227,
+      "mae": 0.9327999464706657,
+      "n": 99950,
+      "n_fallback": 22
+    },
+    {
+      "model": "User Mean",
+      "partition": "validation",
+      "rmse": 1.0356538770692199,
+      "mae": 0.8286119103571469,
+      "n": 99950,
+      "n_fallback": 22
+    },
+    {
+      "model": "Item Mean",
+      "partition": "validation",
+      "rmse": 0.9801710848404501,
+      "mae": 0.7826671439667003,
+      "n": 99950,
+      "n_fallback": 22
+    },
+    {
+      "model": "User+Item Bias",
+      "partition": "validation",
+      "rmse": 0.9318711189273359,
+      "mae": 0.7350512469368439,
+      "n": 99950,
+      "n_fallback": 22
+    },
+    {
+      "model": "SVD k=20",
+      "partition": "validation",
+      "rmse": 0.9013012152117649,
+      "mae": 0.7077859221317518,
+      "n": 99950,
+      "n_fallback": 22
+    },
+    {
+      "model": "Global Mean",
+      "partition": "test",
+      "rmse": 1.1169958200642873,
+      "mae": 0.9332865956211683,
+      "n": 200016,
+      "n_fallback": 57
+    },
+    {
+      "model": "User Mean",
+      "partition": "test",
+      "rmse": 1.0369258569112945,
+      "mae": 0.8295201792044028,
+      "n": 200016,
+      "n_fallback": 57
+    },
+    {
+      "model": "Item Mean",
+      "partition": "test",
+      "rmse": 0.9802624935402531,
+      "mae": 0.7823269379781768,
+      "n": 200016,
+      "n_fallback": 57
+    },
+    {
+      "model": "User+Item Bias",
+      "partition": "test",
+      "rmse": 0.9318205258899683,
+      "mae": 0.7340946380451173,
+      "n": 200016,
+      "n_fallback": 57
+    },
+    {
+      "model": "SVD k=20",
+      "partition": "test",
+      "rmse": 0.9012555285248228,
+      "mae": 0.7070290175941771,
+      "n": 200016,
+      "n_fallback": 57
+    }
+  ],
+  "seconds": 15.0
+}

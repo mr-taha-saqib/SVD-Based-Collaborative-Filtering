@@ -65,6 +65,9 @@ How to read this honestly:
 * 896 test ratings (4.4 %) concern movies that never appear in training; they are
   predicted with an explicit bias-only fallback and are included in every metric.
 
+MovieLens 1M cross-check (corrected method, `outputs/corrected/ml1m/`): k = 20 chosen on
+validation; test RMSE 0.9013 / MAE 0.7070 versus 0.9318 / 0.7341 for user + item bias.
+
 Historical (test-selected) results: k = 10, RMSE 0.8812. They are optimistically
 biased and not comparable; see [`outputs/HISTORICAL_RESULTS.md`](outputs/HISTORICAL_RESULTS.md).
 
