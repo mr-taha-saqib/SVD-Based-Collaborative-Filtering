@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 import matplotlib
+
 matplotlib.use("Agg")   # headless backend — no GUI required
 
 import matplotlib.pyplot as plt
@@ -153,8 +154,12 @@ def plot_rmse_vs_k(
     rmse_values: list[float],
     ey_bounds:   Optional[list[float]] = None,
     plots_dir:   Optional[Path] = None,
+    partition:   str = "Test",
 ) -> Path:
-    """Test RMSE and Eckart-Young theoretical bound vs rank k.
+    """RMSE on a partition and Eckart-Young theoretical bound vs rank k.
+
+    ``partition`` labels the curve. The corrected pipeline passes "Validation":
+    rank selection must never be read off a test-set curve.
 
     The gap between the two curves equals Delta(k) from the report:
         Delta(k) = RMSE_test(k) - (1/sqrt(|Omega|)) * ||R - R_k||_F
@@ -171,7 +176,7 @@ def plot_rmse_vs_k(
     plots_dir = plots_dir or _DEFAULT_PLOTS_DIR
     fig, ax = plt.subplots(figsize=(9, 4))
     ax.plot(k_values, rmse_values, "b-o", linewidth=2, markersize=6,
-            label="Test RMSE")
+            label=f"{partition} RMSE")
 
     if ey_bounds:
         ax.plot(k_values, ey_bounds, "r--^", linewidth=1.5, markersize=5,
@@ -184,7 +189,7 @@ def plot_rmse_vs_k(
 
     ax.set_xlabel("Rank $k$")
     ax.set_ylabel("RMSE")
-    ax.set_title("Test RMSE vs Rank $k$  (U-shaped overfitting curve)")
+    ax.set_title(f"{partition} RMSE vs Rank $k$")
     ax.legend()
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
@@ -196,8 +201,9 @@ def plot_mae_vs_k(
     k_values:   list[int],
     mae_values: list[float],
     plots_dir:  Optional[Path] = None,
+    partition:  str = "Test",
 ) -> Path:
-    """Test MAE vs rank k.
+    """MAE on a partition vs rank k.
 
     Args:
         k_values:   List of k values.
@@ -212,7 +218,7 @@ def plot_mae_vs_k(
     ax.plot(k_values, mae_values, "g-s", linewidth=2, markersize=6)
     ax.set_xlabel("Rank $k$")
     ax.set_ylabel("MAE")
-    ax.set_title("Test MAE vs Rank $k$")
+    ax.set_title(f"{partition} MAE vs Rank $k$")
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
     return _save(fig, "04_mae_vs_k", plots_dir)

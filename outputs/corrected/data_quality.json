@@ -1,0 +1,15 @@
+{
+  "n_input_rows": 100836,
+  "n_output_rows": 100836,
+  "n_users": 610,
+  "n_items": 9724,
+  "n_missing_values": 0,
+  "n_out_of_range": 0,
+  "n_non_integer_ids": 0,
+  "n_off_scale_step": 0,
+  "n_duplicate_pairs": 0,
+  "duplicates_policy": "keep_latest",
+  "errors": [],
+  "warnings": [],
+  "passed": true
+}
