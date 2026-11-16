@@ -2,7 +2,7 @@
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                   # 143 tests, ~35 s, offline, synthetic fixtures
+pytest                                   # 145 tests, ~35 s, offline, synthetic fixtures
 pytest -m "not performance"              # what CI runs (skips the timing-based check)
 pytest --cov=src --cov-report=term       # coverage (83 % of src/ in the acceptance run)
 ruff check src tests scripts
@@ -23,7 +23,7 @@ that "SVD beats the global mean" is a meaningful assertion.
 | `test_recommender.py` | 10 | artifact reload equality, exclusion of rated items, cold start, titles, fallback methods, tamper detection |
 | `test_registry.py` | 10 | register ≠ approve, reasons required, promotion keeps previous, rollback, rejection, idempotence, unsafe ids |
 | `test_monitoring.py` | 6 | PSI, statuses, normal vs controlled drift, delayed-label performance, pseudonymised log |
-| `test_retrain.py` | 15 | every gate criterion, feedback validation, data requirements, promote/reject, dry run, **test partition never read**, mismatched base data |
+| `test_retrain.py` | 17 | every gate criterion, feedback validation, data requirements, promote/reject, dry run, **test partition never read**, mismatched base data, unique report names, clean rollback error |
 | `test_api.py` | 24 | all endpoints, schemas, 422 cases, malformed JSON, cold start, exclusions, 503 without model, reload auth, OpenAPI |
 | `test_integration.py` | 4 | pipeline outputs + validation argmin, **selection never sees test**, MLflow run + `champion` alias, full lifecycle (pipeline → API → retraining) |
 

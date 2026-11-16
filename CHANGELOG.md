@@ -26,7 +26,7 @@
 * MLflow tracking (local SQLite) with model registry aliases.
 * Gated retraining workflow with dry-run, idempotence and reports.
 * Dockerfile (API + trainer targets), docker-compose with named volumes, `.env.example`.
-* GitHub Actions CI; 143 tests (was 48).
+* GitHub Actions CI; 145 tests (was 48).
 * Documentation set: ARCHITECTURE, API_DOCUMENTATION, MODEL_CARD, DATA_CARD,
   DEPLOYMENT, MONITORING, RETRAINING, TESTING, CONTRIBUTING, FINAL_E2E_ACCEPTANCE.
 

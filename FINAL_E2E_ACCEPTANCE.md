@@ -52,7 +52,7 @@ Every row below was executed and its output observed. Evidence files are in
 | Candidate evaluation | same | candidate and approved compared on validation (base + feedback-validation) | `retraining_reports/*.md` | PASS |
 | Model promotion / rejection | same | noise feedback → **rejected** (`…baf57cab`, run `6a7df9cf…`); new-user feedback → **promoted** (`…9180e770`, RMSE 0.8671 → 0.8604, run `a56a3717…`) | reports, MLflow model versions 1–2 | PASS |
 | Previous-model preservation | same | previous version kept; rollback restored `svd-k20-fce385dc-c6b9d577` | `06_retraining_e2e.log` | PASS |
-| Automated tests | `pytest --cov=src` | **143 passed**, 83 % coverage | `07_pytest_output.txt`, `07_pytest_junit.xml` | PASS |
+| Automated tests | `pytest --cov=src` | **145 passed**, 83 % coverage | `07_pytest_output.txt`, `07_pytest_junit.xml` | PASS |
 | Lint | `ruff check src tests scripts` | all checks passed | – | PASS |
 | Docker image build | `docker build --target base` / `trainer` | `svd-recommender-api:1.0.0` 396 MB; trainer 1.28 GB | build logs | PASS |
 | Docker trainer | `docker compose --profile tools run --rm trainer` | trained, evaluated, approved into volume (dataset seeded from verified archive; see note 2) | `03_docker_trainer_run.log` | PASS |
@@ -60,7 +60,7 @@ Every row below was executed and its output observed. Evidence files are in
 | Inference inside Docker | curl to container | svd + popularity fallback responses, 422 on invalid | `04_docker_api_session.log` | PASS |
 | Persistence across restart | `docker compose restart api` | same model; event log and feedback retained | `04_docker_api_session.log` | PASS |
 | Logs + clean stop | `docker compose logs`, `down` | JSON logs; containers removed, volumes kept | `04_docker_api_session.log` | PASS |
-| GitHub Actions | push to `mlops-production-delivery` | run [43967692965](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43967692965): **failed** on Python 3.11 (numpy 2.5 needs ≥ 3.12). Fixed; run [43967996915](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43967996915): lint+tests 3.12 ✔, 3.13 ✔ (142 passed), Docker build + container inference ✔ | Actions | PASS |
+| GitHub Actions | push to `mlops-production-delivery` | run [43967692965](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43967692965): **failed** on Python 3.11 (numpy 2.5 needs ≥ 3.12). Fixed; run [43967996915](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43967996915): lint+tests 3.12 ✔, 3.13 ✔ (144 passed), Docker build + container inference ✔; final run [43981234844](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43981234844) ✔ (all jobs) | Actions | PASS |
 | Real-data CI job | `workflow_dispatch` / push to `main` | not triggered: runs only on `main` or manual dispatch, and this session's GitHub token could not dispatch workflows | – | BLOCKED (executed locally instead) |
 | Documentation | files present, commands executed | README + 11 documents; every command in README executed in this run | repo | PASS |
 | Security review | `git grep` for keys/tokens/private keys; `.env` ignored | 0 findings; no secrets, datasets or models committed | – | PASS |
@@ -79,6 +79,9 @@ Every row below was executed and its output observed. Evidence files are in
 4. **Prediction-drift PSI was computed from popularity-fallback items** too; restricted
    to SVD responses. Re-run: pass.
 5. **`approved_after` was null** on the data-requirement rejection path; fixed.
+8. **Retraining reports of runs started in the same second overwrote each other**, and rollback
+   without history raised a traceback (found while testing the transaction project, same code
+   pattern): microsecond timestamps and a clean exit code 1, both covered by new tests.
 6. **CI failed on Python 3.11** (pinned numpy needs 3.12). Python floor raised to 3.12,
    matrix 3.12/3.13; re-run green.
 7. Docker build behind the sandbox's TLS-inspecting proxy needed its CA: added an

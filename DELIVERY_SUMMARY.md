@@ -13,7 +13,7 @@ CI job that could not be triggered (see FINAL_E2E_ACCEPTANCE.md).**
 | Monitoring | Prometheus metrics, PSI drift, delayed-label performance | yes, controlled drift test |
 | Retraining | gated promotion, dry-run, rollback, reports | yes, promote + reject + rollback executed |
 | CI | GitHub Actions: lint, tests 3.12/3.13, Docker smoke test | yes, run 43967996915 green |
-| Tests | 143 (was 48; 8 of the original failed with pandas 3) | yes |
+| Tests | 145 (was 48; 8 of the original failed with pandas 3) | yes |
 
 **Two things the client must know**
 
