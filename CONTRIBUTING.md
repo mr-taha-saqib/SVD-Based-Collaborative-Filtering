@@ -10,4 +10,4 @@
    * no secrets in code, config or tests (`.env` is git-ignored).
 5. Add or update tests for any behaviour change; never weaken an assertion to make a test pass.
 6. Update `CHANGELOG.md` and the relevant document (README, API_DOCUMENTATION, ...).
-7. Open a pull request; CI (lint, tests on 3.11/3.12, Docker smoke test) must pass.
+7. Open a pull request; CI (lint, tests on 3.12/3.13, Docker smoke test) must pass.

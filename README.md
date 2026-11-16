@@ -123,7 +123,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## 5. Installation
 
-Python 3.11 or 3.12.
+Python 3.12 or 3.13 (the pinned NumPy 2.5 requires Python ≥ 3.12).
 
 ```bash
 python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
@@ -226,8 +226,8 @@ pytest                         # 143 tests, ~30 s, synthetic fixtures, no networ
 ruff check src tests scripts
 ```
 
-GitHub Actions (`.github/workflows/ci.yml`) runs lint and tests on Python 3.11 and
-3.12, builds the Docker image and smoke-tests inference inside a container; a
+GitHub Actions (`.github/workflows/ci.yml`) runs lint and tests on Python 3.12 and
+3.13, builds the Docker image and smoke-tests inference inside a container; a
 real-data pipeline job runs on `main` and on manual dispatch. See [TESTING.md](TESTING.md).
 
 ## 13. Limitations
