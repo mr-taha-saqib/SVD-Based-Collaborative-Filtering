@@ -1,5 +1,7 @@
-numpy>=1.26
-pandas>=2.2
-matplotlib>=3.8
-scikit-learn>=1.4
-scipy>=1.12
+# Full environment: training pipeline, evaluation, plots, API, MLflow tracking.
+# Python 3.11+ (verified on 3.12). Install:  pip install -r requirements.txt
+-r requirements-api.txt
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+mlflow==3.18.0

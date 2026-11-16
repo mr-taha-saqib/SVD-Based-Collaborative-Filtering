@@ -1,0 +1,9 @@
+# Serving-only dependencies (used by the Docker image). Pinned to the versions the
+# acceptance tests were run with (Python 3.12, Linux x86_64).
+numpy==2.5.5
+pandas==3.0.6
+PyYAML==6.0.3
+fastapi==0.163.1
+uvicorn==0.54.0
+pydantic==2.14.3
+prometheus-client==0.26.0

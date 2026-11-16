@@ -23,10 +23,14 @@ Equation numbering follows report.tex:
 
 from __future__ import annotations
 
+import hashlib
 import logging
-import os
-import zipfile
+import shutil
+import ssl
+import tempfile
 import urllib.request
+import zipfile
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -41,29 +45,132 @@ DATA_DIR      = Path(__file__).parent.parent / "data"
 RATINGS_PATH  = DATA_DIR / "ml-latest-small" / "ratings.csv"
 ZIP_PATH      = DATA_DIR / "ml-latest-small.zip"
 
+ML_SMALL_SHA256 = "696d65a3dfceac7c45750ad32df2c259311949efec81f0f144fdfb91ebc9e436"
+EXTRA_CA_FILE = Path(__file__).parent.parent / "certs" / "incommon-ovg2c-intermediate.pem"
+
 ML1M_URL          = "https://files.grouplens.org/datasets/movielens/ml-1m.zip"
 ML1M_ZIP_PATH     = DATA_DIR / "ml-1m.zip"
 ML1M_RATINGS_PATH = DATA_DIR / "ml-1m" / "ratings.dat"
 
 
 # ── download & extract ────────────────────────────────────────────────────────
-def download_movielens(force: bool = False) -> None:
-    """Download and unzip the MovieLens latest-small dataset.
+def _ssl_context(extra_ca_file: Optional[Path] = None) -> ssl.SSLContext:
+    """Default (verifying) TLS context, optionally extended with an extra CA file.
 
-    Args:
-        force: If True, re-download even if the file already exists.
+    files.grouplens.org serves its leaf certificate without the intermediate.
+    Browsers fetch the intermediate automatically; Python does not, so the public
+    intermediate is shipped in ``certs/`` and added here. Verification is never
+    disabled.
+    """
+    ctx = ssl.create_default_context()
+    if extra_ca_file is not None and Path(extra_ca_file).exists():
+        ctx.load_verify_locations(cafile=str(extra_ca_file))
+        # The intermediate's own root (emSign Root TLS CA - G1) is missing from some
+        # OS trust stores. PARTIAL_CHAIN lets the pinned intermediate act as a trust
+        # anchor (Python 3.13 enables this flag by default). Hostname and signature
+        # checks are unchanged; CERT_REQUIRED stays in force.
+        ctx.verify_flags |= getattr(ssl, "VERIFY_X509_PARTIAL_CHAIN", 0)
+    return ctx
+
+
+def sha256_file(path: Path) -> str:
+    """SHA-256 of a file, streamed."""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def download_archive(
+    url: str,
+    dest_zip: Path,
+    expected_sha256: Optional[str] = None,
+    extra_ca_file: Optional[Path] = None,
+    timeout: float = 120.0,
+) -> Path:
+    """Download ``url`` to ``dest_zip`` atomically and verify its checksum.
 
     Raises:
-        urllib.error.URLError: If the download fails.
+        urllib.error.URLError: network or TLS failure.
+        ValueError: the downloaded file does not match ``expected_sha256``.
+    """
+    dest_zip.parent.mkdir(parents=True, exist_ok=True)
+    ctx = _ssl_context(extra_ca_file)
+    logger.info("Downloading %s", url)
+    with tempfile.NamedTemporaryFile(dir=dest_zip.parent, delete=False, suffix=".part") as tmp:
+        tmp_path = Path(tmp.name)
+        try:
+            with urllib.request.urlopen(url, context=ctx, timeout=timeout) as resp:  # noqa: S310
+                shutil.copyfileobj(resp, tmp)
+        except BaseException:
+            tmp.close()
+            tmp_path.unlink(missing_ok=True)
+            raise
+    digest = sha256_file(tmp_path)
+    if expected_sha256 and digest != expected_sha256:
+        tmp_path.unlink(missing_ok=True)
+        raise ValueError(
+            f"Checksum mismatch for {url}: expected {expected_sha256}, got {digest}"
+        )
+    tmp_path.replace(dest_zip)
+    logger.info("Downloaded %s (sha256 %s)", dest_zip, digest[:16])
+    return dest_zip
+
+
+def ensure_dataset(cfg: dict) -> Path:
+    """Make sure the configured ratings file exists, downloading it if needed.
+
+    Returns:
+        Path to the ratings CSV.
+    """
+    from settings import resolve_path
+
+    ds = cfg.get("dataset", {})
+    ratings_path = resolve_path(ds.get("ratings_path", "data/ml-latest-small/ratings.csv"))
+    if ratings_path.exists():
+        return ratings_path
+    data_dir = resolve_path(ds.get("local_dir", "data"))
+    zip_path = data_dir / ds.get("zip_filename", "ml-latest-small.zip")
+    extra_ca = ds.get("extra_ca_file")
+    if not zip_path.exists():
+        download_archive(
+            ds.get("url", MOVIELENS_URL), zip_path,
+            expected_sha256=ds.get("zip_sha256"),
+            extra_ca_file=resolve_path(extra_ca) if extra_ca else None,
+        )
+    elif ds.get("zip_sha256") and sha256_file(zip_path) != ds["zip_sha256"]:
+        raise ValueError(f"{zip_path} exists but does not match the configured checksum.")
+    with zipfile.ZipFile(zip_path, "r") as z:
+        _safe_extract(z, data_dir)
+    if not ratings_path.exists():
+        raise FileNotFoundError(f"Archive extracted but {ratings_path} is missing.")
+    return ratings_path
+
+
+def _safe_extract(z: zipfile.ZipFile, dest: Path) -> None:
+    """Extract an archive, refusing members that would escape ``dest``."""
+    dest = dest.resolve()
+    for member in z.namelist():
+        target = (dest / member).resolve()
+        if dest != target and dest not in target.parents:
+            raise ValueError(f"Unsafe path in archive: {member}")
+    z.extractall(dest)
+
+
+def download_movielens(force: bool = False) -> None:
+    """Download and unzip the MovieLens latest-small dataset (legacy helper).
+
+    Uses the same verified, TLS-checked path as :func:`ensure_dataset`.
     """
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if RATINGS_PATH.exists() and not force:
         logger.info("Dataset already present at %s", RATINGS_PATH)
         return
-    logger.info("Downloading MovieLens small dataset from %s", MOVIELENS_URL)
-    urllib.request.urlretrieve(MOVIELENS_URL, ZIP_PATH)
+    download_archive(MOVIELENS_URL, ZIP_PATH, expected_sha256=ML_SMALL_SHA256,
+                     extra_ca_file=EXTRA_CA_FILE)
     with zipfile.ZipFile(ZIP_PATH, "r") as z:
-        z.extractall(DATA_DIR)
+        _safe_extract(z, DATA_DIR)
     logger.info("Extraction complete. Ratings file: %s", RATINGS_PATH)
 
 
@@ -74,10 +181,9 @@ def download_movielens_1m(force: bool = False) -> None:
     if ML1M_RATINGS_PATH.exists() and not force:
         logger.info("ML-1M already present at %s", ML1M_RATINGS_PATH)
         return
-    logger.info("Downloading MovieLens 1M from %s ...", ML1M_URL)
-    urllib.request.urlretrieve(ML1M_URL, ML1M_ZIP_PATH)
+    download_archive(ML1M_URL, ML1M_ZIP_PATH, extra_ca_file=EXTRA_CA_FILE)
     with zipfile.ZipFile(ML1M_ZIP_PATH, "r") as z:
-        z.extractall(DATA_DIR)
+        _safe_extract(z, DATA_DIR)
     logger.info("ML-1M extraction complete -> %s", ML1M_RATINGS_PATH)
 
 
@@ -183,7 +289,9 @@ def train_test_split(
     test_rows:  list[np.ndarray] = []
 
     for _, group in df.groupby("userId"):
-        idx = group.index.to_numpy()
+        # .copy(): under pandas >= 3 (copy-on-write) index arrays are read-only and
+        # an in-place shuffle raises "ValueError: array is read-only".
+        idx = group.index.to_numpy().copy()
         rng.shuffle(idx)
         cut = max(1, int(len(idx) * test_frac))
         test_rows.append(idx[:cut])
@@ -196,9 +304,10 @@ def train_test_split(
     train_pairs = set(zip(train_df["userId"], train_df["movieId"]))
     test_pairs  = set(zip(test_df["userId"],  test_df["movieId"]))
     overlap_pairs = train_pairs & test_pairs
-    assert len(overlap_pairs) == 0, (
-        f"BUG: {len(overlap_pairs)} (userId, movieId) pairs appear in both train and test!"
-    )
+    if overlap_pairs:
+        raise RuntimeError(
+            f"BUG: {len(overlap_pairs)} (userId, movieId) pairs appear in both train and test!"
+        )
 
     logger.info(
         "Split -> Train: %d ratings | Test: %d ratings (%.0f%% hold-out)",
@@ -364,6 +473,280 @@ def impute_matrix(R_c: np.ndarray, strategy: str = "zero") -> np.ndarray:
         mask = np.isnan(R_filled)
         R_filled[mask] = np.broadcast_to(col_means, R_c.shape)[mask]
 
-    assert not np.any(np.isnan(R_filled)), "BUG: NaN values remain after imputation."
+    if np.any(np.isnan(R_filled)):
+        raise RuntimeError("BUG: NaN values remain after imputation.")
     logger.debug("Imputation (%s): matrix fully dense, shape %s", strategy, R_filled.shape)
     return R_filled
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Production data layer: validation, fingerprinting, leakage-safe 3-way split
+# ═══════════════════════════════════════════════════════════════════════════════
+RATING_COLUMNS = ("userId", "movieId", "rating")
+
+
+@dataclass
+class DataQualityReport:
+    """Outcome of :func:`validate_ratings`. ``passed`` is False on any hard error."""
+
+    n_input_rows: int = 0
+    n_output_rows: int = 0
+    n_users: int = 0
+    n_items: int = 0
+    n_missing_values: int = 0
+    n_out_of_range: int = 0
+    n_non_integer_ids: int = 0
+    n_off_scale_step: int = 0
+    n_duplicate_pairs: int = 0
+    duplicates_policy: str = "keep_latest"
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    @property
+    def passed(self) -> bool:
+        return not self.errors
+
+    def to_dict(self) -> dict:
+        d = asdict(self)
+        d["passed"] = self.passed
+        return d
+
+
+class DataValidationError(ValueError):
+    """Raised when ratings data fails a hard validation rule."""
+
+    def __init__(self, report: DataQualityReport):
+        super().__init__("; ".join(report.errors))
+        self.report = report
+
+
+def validate_ratings(
+    df: pd.DataFrame,
+    rating_scale: tuple[float, float] = (0.5, 5.0),
+    rating_step: Optional[float] = 0.5,
+    drop_invalid: bool = False,
+) -> tuple[pd.DataFrame, DataQualityReport]:
+    """Validate and normalise a ratings table.
+
+    Hard errors (raise unless ``drop_invalid``): missing required columns, missing
+    values, non-integer or non-positive ids, ratings outside ``rating_scale``.
+    Duplicate (userId, movieId) pairs are resolved by keeping the latest rating
+    (by ``timestamp`` when present) and are always reported.
+
+    Args:
+        df: Raw ratings with at least userId, movieId, rating.
+        rating_scale: Inclusive (min, max).
+        rating_step: Expected granularity; off-step values are reported as a warning.
+        drop_invalid: Drop invalid rows instead of raising (used for feedback data).
+
+    Returns:
+        (clean_df, report). ``clean_df`` has int64 ids and float64 ratings.
+
+    Raises:
+        DataValidationError: On hard errors when ``drop_invalid`` is False.
+    """
+    rep = DataQualityReport(n_input_rows=int(len(df)))
+    missing_cols = [c for c in RATING_COLUMNS if c not in df.columns]
+    if missing_cols:
+        rep.errors.append(f"missing required columns: {missing_cols}")
+        raise DataValidationError(rep)
+
+    out = df.copy()
+    cols = list(RATING_COLUMNS) + (["timestamp"] if "timestamp" in out.columns else [])
+    out = out[cols]
+
+    na_mask = out[list(RATING_COLUMNS)].isna().any(axis=1)
+    rep.n_missing_values = int(na_mask.sum())
+
+    ids = out[["userId", "movieId"]].apply(pd.to_numeric, errors="coerce")
+    bad_id = ids.isna().any(axis=1) | (ids % 1 != 0).any(axis=1) | (ids <= 0).any(axis=1)
+    rep.n_non_integer_ids = int((bad_id & ~na_mask).sum())
+
+    ratings = pd.to_numeric(out["rating"], errors="coerce")
+    lo, hi = float(rating_scale[0]), float(rating_scale[1])
+    out_of_range = ratings.isna() | (ratings < lo) | (ratings > hi)
+    rep.n_out_of_range = int((out_of_range & ~na_mask).sum())
+
+    invalid = na_mask | bad_id | out_of_range
+    if invalid.any():
+        msg = (f"{int(invalid.sum())} invalid rows (missing={rep.n_missing_values}, "
+               f"bad_ids={rep.n_non_integer_ids}, out_of_range={rep.n_out_of_range})")
+        if drop_invalid:
+            rep.warnings.append(msg + " dropped")
+        else:
+            rep.errors.append(msg)
+            raise DataValidationError(rep)
+    out = out.loc[~invalid].copy()
+    out["userId"] = ids.loc[out.index, "userId"].astype("int64")
+    out["movieId"] = ids.loc[out.index, "movieId"].astype("int64")
+    out["rating"] = ratings.loc[out.index].astype("float64")
+    if "timestamp" in out.columns:
+        out["timestamp"] = pd.to_numeric(out["timestamp"], errors="coerce").fillna(0).astype("int64")
+
+    if rating_step:
+        off = ((out["rating"] / rating_step) % 1 != 0)
+        rep.n_off_scale_step = int(off.sum())
+        if rep.n_off_scale_step:
+            rep.warnings.append(f"{rep.n_off_scale_step} ratings are not multiples of {rating_step}")
+
+    dup = out.duplicated(["userId", "movieId"], keep=False)
+    rep.n_duplicate_pairs = int(out.duplicated(["userId", "movieId"]).sum())
+    if dup.any():
+        sort_cols = ["userId", "movieId"] + (["timestamp"] if "timestamp" in out.columns else [])
+        out = out.sort_values(sort_cols, kind="mergesort").drop_duplicates(
+            ["userId", "movieId"], keep="last")
+        rep.warnings.append(f"{rep.n_duplicate_pairs} duplicate (userId, movieId) rows resolved "
+                            f"by keeping the latest rating")
+
+    out = out.reset_index(drop=True)
+    rep.n_output_rows = int(len(out))
+    rep.n_users = int(out["userId"].nunique())
+    rep.n_items = int(out["movieId"].nunique())
+    if rep.n_output_rows == 0:
+        rep.errors.append("no valid rows")
+        if not drop_invalid:
+            raise DataValidationError(rep)
+    return out, rep
+
+
+def dataset_fingerprint(df: pd.DataFrame) -> str:
+    """Order-independent SHA-256 of the (userId, movieId, rating) content."""
+    canon = df[list(RATING_COLUMNS)].sort_values(["userId", "movieId"], kind="mergesort")
+    payload = canon.to_csv(index=False, lineterminator="\n", float_format="%.4f")
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def load_ratings_from_config(cfg: dict, path: Optional[Path] = None) -> tuple[pd.DataFrame, DataQualityReport]:
+    """Load (downloading if necessary) and validate the configured ratings file."""
+    ratings_path = Path(path) if path else ensure_dataset(cfg)
+    raw = pd.read_csv(ratings_path)
+    scale = tuple(cfg.get("dataset", {}).get("rating_scale", [0.5, 5.0]))
+    df, rep = validate_ratings(raw, rating_scale=scale)
+    logger.info("Loaded %d ratings | %d users | %d items | duplicates resolved: %d",
+                rep.n_output_rows, rep.n_users, rep.n_items, rep.n_duplicate_pairs)
+    return df, rep
+
+
+def load_movies(path: Path) -> pd.DataFrame:
+    """Load MovieLens ``movies.csv`` (movieId, title, genres). Missing file -> empty frame."""
+    path = Path(path)
+    if not path.exists():
+        logger.warning("Movie metadata not found at %s; responses will omit titles.", path)
+        return pd.DataFrame(columns=["movieId", "title", "genres"])
+    movies = pd.read_csv(path)
+    missing = {"movieId", "title", "genres"} - set(movies.columns)
+    if missing:
+        raise ValueError(f"movies file {path} is missing columns {missing}")
+    movies = movies.drop_duplicates("movieId", keep="first")
+    movies["movieId"] = movies["movieId"].astype("int64")
+    return movies[["movieId", "title", "genres"]].reset_index(drop=True)
+
+
+@dataclass
+class SplitResult:
+    """Train / validation / test partitions plus their integrity record."""
+
+    train: pd.DataFrame
+    validation: pd.DataFrame
+    test: pd.DataFrame
+    manifest: dict
+
+
+def train_val_test_split(
+    df: pd.DataFrame,
+    validation_frac: float = 0.10,
+    test_frac: float = 0.20,
+    random_state: int = 42,
+) -> SplitResult:
+    """Leakage-safe, per-user stratified three-way split.
+
+    For each user, ratings are shuffled with a seeded RNG (users are processed in
+    sorted order, so the result is independent of input row order). Then
+    ``round(test_frac * n)`` (at least 1) go to test, ``round(validation_frac * n)``
+    (at least 1) to validation and the remainder (at least 1) to train. Users with
+    fewer than 3 ratings are kept entirely in train and reported.
+
+    Guarantees (checked, raises on violation):
+      * every (userId, movieId) pair lives in exactly one partition;
+      * partitions are disjoint and their union is the input.
+
+    The validation partition is for model selection; the test partition is for a
+    single final evaluation after selection.
+    """
+    if not 0.0 < test_frac < 1.0 or not 0.0 < validation_frac < 1.0:
+        raise ValueError("fractions must be in (0, 1)")
+    if test_frac + validation_frac >= 0.9:
+        raise ValueError("test_frac + validation_frac must be < 0.9")
+    if df.duplicated(["userId", "movieId"]).any():
+        raise ValueError("duplicate (userId, movieId) pairs: run validate_ratings() first")
+
+    rng = np.random.default_rng(random_state)
+    canon = df.sort_values(["userId", "movieId"], kind="mergesort").reset_index(drop=True)
+    part = np.empty(len(canon), dtype=np.int8)  # 0 train, 1 validation, 2 test
+    n_small_users = 0
+    starts = np.flatnonzero(np.r_[True, canon["userId"].to_numpy()[1:] != canon["userId"].to_numpy()[:-1]])
+    ends = np.r_[starts[1:], len(canon)]
+    for s0, e0 in zip(starts, ends):
+        n = int(e0 - s0)
+        order = rng.permutation(n)
+        labels = np.zeros(n, dtype=np.int8)
+        if n >= 3:
+            n_test = max(1, int(round(test_frac * n)))
+            n_val = max(1, int(round(validation_frac * n)))
+            if n_test + n_val > n - 1:
+                n_val = max(1, n - 1 - n_test)
+            labels[order[:n_test]] = 2
+            labels[order[n_test:n_test + n_val]] = 1
+        else:
+            n_small_users += 1
+        part[s0:e0] = labels
+
+    train = canon.loc[part == 0].reset_index(drop=True)
+    val = canon.loc[part == 1].reset_index(drop=True)
+    test = canon.loc[part == 2].reset_index(drop=True)
+    leak = verify_no_leakage(train, val, test)
+    if not leak["passed"]:
+        raise RuntimeError(f"Split leakage detected: {leak}")
+    assignment = canon[["userId", "movieId"]].assign(partition=part)
+    manifest = {
+        "method": "per-user stratified random split (seeded)",
+        "random_state": int(random_state),
+        "validation_fraction": float(validation_frac),
+        "test_fraction": float(test_frac),
+        "n_rows": {"train": int(len(train)), "validation": int(len(val)), "test": int(len(test))},
+        "n_users": {"train": int(train["userId"].nunique()),
+                    "validation": int(val["userId"].nunique()),
+                    "test": int(test["userId"].nunique())},
+        "n_items": {"train": int(train["movieId"].nunique()),
+                    "validation": int(val["movieId"].nunique()),
+                    "test": int(test["movieId"].nunique())},
+        "users_kept_in_train_only": int(n_small_users),
+        "items_in_validation_not_in_train": int(len(set(val["movieId"]) - set(train["movieId"]))),
+        "items_in_test_not_in_train": int(len(set(test["movieId"]) - set(train["movieId"]))),
+        "split_sha256": hashlib.sha256(
+            assignment.to_csv(index=False, lineterminator="\n").encode("utf-8")).hexdigest(),
+        "dataset_sha256": dataset_fingerprint(df),
+        "leakage_checks": leak,
+    }
+    logger.info("Split -> train %d | validation %d | test %d (users kept train-only: %d)",
+                len(train), len(val), len(test), n_small_users)
+    return SplitResult(train=train, validation=val, test=test, manifest=manifest)
+
+
+def verify_no_leakage(train: pd.DataFrame, val: pd.DataFrame, test: pd.DataFrame) -> dict:
+    """Count (userId, movieId) pairs shared between partitions (must all be 0)."""
+    def pairs(d: pd.DataFrame) -> set[tuple[int, int]]:
+        return set(zip(d["userId"].tolist(), d["movieId"].tolist()))
+
+    tr, va, te = pairs(train), pairs(val), pairs(test)
+    res = {
+        "train_validation_shared_pairs": len(tr & va),
+        "train_test_shared_pairs": len(tr & te),
+        "validation_test_shared_pairs": len(va & te),
+        "duplicate_pairs_within_partitions": int(
+            train.duplicated(["userId", "movieId"]).sum()
+            + val.duplicated(["userId", "movieId"]).sum()
+            + test.duplicated(["userId", "movieId"]).sum()),
+    }
+    res["passed"] = all(v == 0 for v in res.values())
+    return res
