@@ -23,8 +23,12 @@ Hardware: training ≈ 1.5 GB RAM (latest-small), ≈ 3 GB for MovieLens 1M; API
 ```bash
 git clone https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering.git
 cd SVD-Based-Collaborative-Filtering
-git checkout v1.0.0-mlops          # the released version (or stay on main)
+git checkout client-delivery      # the delivered version = the client ZIP
 ```
+
+`client-delivery` (pull request #4) holds the release plus the client documents, demo and the
+MLflow rollback fix: the same source and documents as the ZIP (which adds `PACKAGE_MANIFEST.md`). The tag `v1.0.0-mlops` is the release
+before those additions; `main` matches `client-delivery` once pull request #4 is merged.
 
 From the release ZIP: unzip it and `cd` into the extracted folder.
 
@@ -46,7 +50,12 @@ pip check
 ```bash
 cp .env.example .env               # optional
 python -c "import secrets; print(secrets.token_hex(16))"   # put the output in SVD_MONITORING_SALT
+set -a; source .env; set +a       # local (venv) runs only: export the values to this shell
 ```
+
+Docker Compose reads `.env` automatically. A local `uvicorn` / `python` run does not, so export
+the values first (line above; PowerShell: `$env:NAME = "value"` per variable
+**[Not independently verified]**).
 
 Settings: `config.yaml`; overrides via environment variables
 ([TECHNICAL_DOCUMENTATION.md §12](TECHNICAL_DOCUMENTATION.md#12-configuration-and-environment-variables)).

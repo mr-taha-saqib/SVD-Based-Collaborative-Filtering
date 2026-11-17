@@ -11,6 +11,8 @@ Not a new model or API version; the release tag `v1.0.0-mlops` is unchanged.
   added (157 tests).
 * `CLIENT_DELIVERY_GUIDE.md`: install command referred to the merged delivery branch;
   `DEPLOYMENT.md`: API image size (423 MB).
+* Documentation: `client-delivery` named as the Git ref that matches the client ZIP; `.env` is read
+  by Docker Compose only, local runs export it (`INSTALLATION_AND_SETUP.md`).
 
 ### Added (documentation and demo only)
 * `CLIENT_README.md`, `TECHNICAL_DOCUMENTATION.md`, `INSTALLATION_AND_SETUP.md`, `USER_GUIDE.md`,

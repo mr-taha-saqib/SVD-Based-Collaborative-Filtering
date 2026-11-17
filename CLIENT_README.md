@@ -95,6 +95,7 @@ Full, tested instructions: [INSTALLATION_AND_SETUP.md](INSTALLATION_AND_SETUP.md
 ```bash
 git clone https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering.git
 cd SVD-Based-Collaborative-Filtering
+git checkout client-delivery     # = the delivered ZIP (main once PR #4 is merged)
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 python src/main.py --approve --approval-reason "reviewed validation results"   # ≈ 30 s
