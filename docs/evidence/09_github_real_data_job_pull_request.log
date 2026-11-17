@@ -1,0 +1,213 @@
+# GitHub Actions job 134001599285 (event: pull_request), workflow run for commit 75976e47da2ac80b340219e18aab1e689fa761d9
+# https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/44072182735
+# Excerpt: checkout + pipeline output (dependency-install lines omitted)
+##[group]Checking out the ref
+[command]/usr/bin/git checkout --progress --force refs/remotes/pull/1/merge
+Note: switching to 'refs/remotes/pull/1/merge'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at ae9f048 Merge 75976e47da2ac80b340219e18aab1e689fa761d9 into cae97e2c409b9ca907ce85010ebfd86841b71847
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+ae9f048c4580ca9a095c19b5e56afc39a94d4048
+##[group]Run actions/setup-python@v5
+with:
+  python-version: 3.12
+  cache: pip
+  cache-dependency-path: requirements*.txt
+  check-latest: false
+  token: ***
+  update-environment: true
+  allow-prereleases: false
+  freethreaded: false
+##[endgroup]
+##[group]Installed versions
+(node:2472) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Successfully set up CPython (3.12.16)
+##[endgroup]
+[command]/opt/hostedtoolcache/Python/3.12.16/x64/bin/pip cache dir
+/home/runner/.cache/pip
+Cache hit for: setup-python-Linux-x64-26.04-Ubuntu-python-3.12.16-pip-4f3d667365fe7a5f0b2436992c023c92d94485c7db65efc5c13f15f5165e1b53
+(node:2472) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Received 134217728 of 217511828 (61.7%), 128.0 MBs/sec
+Received 217511828 of 217511828 (100.0%), 152.2 MBs/sec
+Cache Size: ~207 MB (217511828 B)
+[command]/usr/bin/tar -xf /home/runner/work/_temp/7910f91e-7b0f-48ad-9a38-60aafcfed29e/cache.tzst -P -C /home/runner/work/SVD-Based-Collaborative-Filtering/SVD-Based-Collaborative-Filtering --use-compress-program unzstd
+Cache restored successfully
+Cache restored from key: setup-python-Linux-x64-26.04-Ubuntu-python-3.12.16-pip-4f3d667365fe7a5f0b2436992c023c92d94485c7db65efc5c13f15f5165e1b53
+##[group]Run pip install -r requirements.txt
+pip install -r requirements.txt
+shell: /usr/bin/bash -e {0}
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+##[endgroup]
+
+##[group]Run python src/main.py --no-plots --out-dir ci-real-outputs
+python src/main.py --no-plots --out-dir ci-real-outputs
+shell: /usr/bin/bash -e {0}
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+  SVD_MODEL_DIR: ci-real-models
+  SVD_MLFLOW_ENABLED: false
+##[endgroup]
+11:16:27  INFO      main  SVD-Based Collaborative Filtering - corrected train/validation/test pipeline
+11:16:27  INFO      data_loader  Downloading https://files.grouplens.org/datasets/movielens/ml-latest-small.zip
+11:16:28  INFO      data_loader  Downloaded /home/runner/work/SVD-Based-Collaborative-Filtering/SVD-Based-Collaborative-Filtering/data/ml-latest-small.zip (sha256 696d65a3dfceac7c)
+11:16:28  INFO      data_loader  Loaded 100836 ratings | 610 users | 9724 items | duplicates resolved: 0
+11:16:29  INFO      data_loader  Split -> train 70579 | validation 10093 | test 20164 (users kept train-only: 0)
+11:16:29  INFO      data_loader  Matrix shape: 610 x 8578 | Observed: 70579 | Density: 1.3488%
+11:16:30  INFO      training  SVD of 610x8578 train matrix via full in 0.79s
+11:16:30  INFO      evaluation  SVD k=5                         RMSE=0.8755  MAE=0.6714  N=10093  fallback=433
+11:16:30  INFO      evaluation  SVD k=10                        RMSE=0.8743  MAE=0.6702  N=10093  fallback=433
+11:16:30  INFO      evaluation  SVD k=20                        RMSE=0.8729  MAE=0.6691  N=10093  fallback=433
+11:16:30  INFO      evaluation  SVD k=50                        RMSE=0.8767  MAE=0.6724  N=10093  fallback=433
+11:16:30  INFO      evaluation  SVD k=100                       RMSE=0.8798  MAE=0.6751  N=10093  fallback=433
+11:16:30  INFO      evaluation  SVD k=150                       RMSE=0.8817  MAE=0.6769  N=10093  fallback=433
+11:16:30  INFO      evaluation  SVD k=200                       RMSE=0.8820  MAE=0.6772  N=10093  fallback=433
+11:16:30  INFO      training  Validation-selected rank k=20 (validation RMSE 0.8729)
+11:16:30  INFO      svd_model  Variance criterion (tau=90%): k* = 263  (EV=90.05%)
+11:16:30  INFO      evaluation  SGD-MF training: k=20  lr=0.0050  reg=0.0200  epochs=20  |Omega|=70579
+11:16:34  INFO      evaluation  SGD-MF epoch   5/20  train RMSE=0.8789
+11:16:39  INFO      evaluation  SGD-MF epoch  10/20  train RMSE=0.8540
+11:16:43  INFO      evaluation  SGD-MF epoch  15/20  train RMSE=0.8408
+11:16:48  INFO      evaluation  SGD-MF epoch  20/20  train RMSE=0.8318
+11:16:48  INFO      evaluation  Global Mean                     RMSE=1.0438  MAE=0.8290  N=10093  fallback=433
+11:16:48  INFO      evaluation  User Mean                       RMSE=0.9322  MAE=0.7311  N=10093  fallback=433
+11:16:48  INFO      evaluation  Item Mean                       RMSE=0.9793  MAE=0.7582  N=10093  fallback=433
+11:16:48  INFO      evaluation  User+Item Bias                  RMSE=0.8826  MAE=0.6775  N=10093  fallback=433
+11:16:48  INFO      ranking  User+Item Bias         validation P@10=0.0017 R@10=0.0014 NDCG@10=0.0022 cov=0.005 users=581
+11:16:48  INFO      evaluation  SVD k=20                        RMSE=0.8729  MAE=0.6691  N=10093  fallback=433
+11:16:48  INFO      ranking  SVD k=20               validation P@10=0.0071 R@10=0.0040 NDCG@10=0.0092 cov=0.031 users=581
+11:16:48  INFO      evaluation  SGD-MF k=20                     RMSE=0.8613  MAE=0.6657  N=10093  fallback=433
+11:16:48  INFO      ranking  Most Popular           validation P@10=0.0571 R@10=0.0972 NDCG@10=0.0973 cov=0.013 users=581
+11:16:48  INFO      main  ============================================================
+11:16:48  INFO      main  FINAL TEST EVALUATION: k=20 was fixed on validation before this point
+11:16:48  INFO      main  ============================================================
+11:16:48  INFO      evaluation  Global Mean                     RMSE=1.0442  MAE=0.8266  N=20164  fallback=896
+11:16:48  INFO      evaluation  User Mean                       RMSE=0.9435  MAE=0.7350  N=20164  fallback=896
+11:16:48  INFO      evaluation  Item Mean                       RMSE=0.9782  MAE=0.7544  N=20164  fallback=896
+11:16:48  INFO      evaluation  User+Item Bias                  RMSE=0.8943  MAE=0.6834  N=20164  fallback=896
+11:16:48  INFO      ranking  User+Item Bias         test       P@10=0.0028 R@10=0.0009 NDCG@10=0.0024 cov=0.005 users=604
+11:16:48  INFO      evaluation  SVD k=20                        RMSE=0.8853  MAE=0.6754  N=20164  fallback=896
+11:16:48  INFO      ranking  SVD k=20               test       P@10=0.0103 R@10=0.0022 NDCG@10=0.0109 cov=0.029 users=604
+11:16:48  INFO      evaluation  SGD-MF k=20                     RMSE=0.8737  MAE=0.6708  N=20164  fallback=896
+11:16:48  INFO      ranking  Most Popular           test       P@10=0.1113 R@10=0.0922 NDCG@10=0.1472 cov=0.019 users=604
+
+VALIDATION (model selection)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 1.0438 0.8290           NaN        NaN      NaN               NaN
+     User Mean 0.9322 0.7311           NaN        NaN      NaN               NaN
+     Item Mean 0.9793 0.7582           NaN        NaN      NaN               NaN
+User+Item Bias 0.8826 0.6775        0.0017     0.0014   0.0022            0.0054
+      SVD k=20 0.8729 0.6691        0.0071     0.0040   0.0092            0.0311
+   SGD-MF k=20 0.8613 0.6657           NaN        NaN      NaN               NaN
+  Most Popular    NaN    NaN        0.0571     0.0972   0.0973            0.0132
+
+TEST (final, evaluated once)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 1.0442 0.8266           NaN        NaN      NaN               NaN
+     User Mean 0.9435 0.7350           NaN        NaN      NaN               NaN
+     Item Mean 0.9782 0.7544           NaN        NaN      NaN               NaN
+User+Item Bias 0.8943 0.6834        0.0028     0.0009   0.0024            0.0054
+      SVD k=20 0.8853 0.6754        0.0103     0.0022   0.0109            0.0294
+   SGD-MF k=20 0.8737 0.6708           NaN        NaN      NaN               NaN
+  Most Popular    NaN    NaN        0.1113     0.0922   0.1472            0.0186
+11:16:48  WARNING   tracking  MLflow tracking is DISABLED by configuration; runs will not be recorded.
+11:16:49  INFO      registry  Registered model version svd-k20-fce385dc-5db43626
+11:16:49  INFO      main  Pipeline complete in 21.2s | k=20 | val RMSE 0.8729 | test RMSE 0.8853 | version svd-k20-fce385dc-5db43626
+##[group]Run python - <<'PY'
+python - <<'PY'
+import json
+m = json.load(open("ci-real-outputs/final_metrics.json"))
+leak = m["split"]["leakage_checks"]
+assert leak["passed"] and leak["train_test_shared_pairs"] == 0, leak
+assert m["selection"]["metric"] == "validation RMSE", m["selection"]
+assert m["dataset"]["sha256"].startswith("fce385dc"), m["dataset"]["sha256"]
+print("dataset", m["dataset"]["sha256"][:16], "| selected k", m["selection"]["selected_k"],
+      "| val RMSE %.4f | test RMSE %.4f" % (m["validation"]["svd"]["rmse"], m["test"]["svd"]["rmse"]))
+PY
+shell: /usr/bin/bash -e {0}
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+##[endgroup]
+dataset fce385dce15c723a | selected k 20 | val RMSE 0.8729 | test RMSE 0.8853
+##[group]Run actions/upload-artifact@v4
+with:
+  name: real-data-results
+  path: ci-real-outputs/
+  if-no-files-found: warn
+  compression-level: 6
+  overwrite: false
+  include-hidden-files: false
+env:
+  pythonLocation: /opt/hostedtoolcache/Python/3.12.16/x64
+  PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib/pkgconfig
+  Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.16/x64
+  LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.16/x64/lib
+##[endgroup]
+(node:2555) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+With the provided path, there will be 7 files uploaded
+Artifact name is valid!
+Root directory input is valid!
+Beginning upload of artifact content to blob storage
+(node:2555) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+Uploaded bytes 5865
+Finished uploading artifact content to blob storage!
+SHA256 digest of uploaded artifact zip is 68320b16795b854c0f713f94f265f3e9cb1df98e337fb8e5b9419779245a8dc4
+Finalizing artifact upload
+Artifact real-data-results.zip successfully finalized. Artifact ID 14322887774
+Artifact real-data-results has been successfully uploaded! Final size is 5865 bytes. Artifact ID is 14322887774
+Artifact download URL: https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/44072182735/artifacts/14322887774
+Post job cleanup.
+Cache hit occurred on the primary key setup-python-Linux-x64-26.04-Ubuntu-python-3.12.16-pip-4f3d667365fe7a5f0b2436992c023c92d94485c7db65efc5c13f15f5165e1b53, not saving cache.
+(node:2569) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.1
+Temporarily overriding HOME='/home/runner/work/_temp/7e813beb-89cb-4839-97f1-4fcdc80935bf' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/SVD-Based-Collaborative-Filtering/SVD-Based-Collaborative-Filtering
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

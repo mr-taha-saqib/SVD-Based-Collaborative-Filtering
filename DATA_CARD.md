@@ -19,8 +19,10 @@ Files used: `ratings.csv` (userId, movieId, rating, timestamp) and `movies.csv`
 GroupLens usage licence (from the dataset README): research use only; no
 endorsement may be implied; the dataset must be acknowledged; redistribution only
 under the same licence; **no commercial or revenue-bearing use without permission from
-a faculty member of the GroupLens Research Project**. Obtain written permission, or
-replace MovieLens with the client's own rating data, before commercial deployment.
+a faculty member of the GroupLens Research Project**. **Before any commercial deployment the client
+must obtain written permission from GroupLens, or replace MovieLens with a commercially
+licensed or client-owned rating dataset.** No such permission is held for this delivery,
+and none is implied by this repository.
 
 ## Validation applied (`validate_ratings`)
 

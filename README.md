@@ -231,11 +231,14 @@ ruff check src tests scripts
 
 GitHub Actions (`.github/workflows/ci.yml`) runs lint and tests on Python 3.12 and
 3.13, builds the Docker image and smoke-tests inference inside a container; a
-real-data pipeline job runs on `main` and on manual dispatch. See [TESTING.md](TESTING.md).
+real-data pipeline job (fresh MovieLens download, SHA-256 check, full corrected pipeline,
+methodology assertions) runs on pull requests, on `main`, on the delivery branch and on
+manual dispatch. See [TESTING.md](TESTING.md).
 
 ## 13. Limitations
 
-* **Licence**: MovieLens is research-only without GroupLens permission.
+* **Licence**: MovieLens is research-only. Commercial use requires written permission from
+  GroupLens or replacement with a commercially licensed / client-owned dataset.
 * Offline top-N quality of the served SVD model is far below a most-popular list
   (section 2). Use online A/B testing before relying on personalised rankings, and
   consider ranking-oriented models (implicit ALS, BPR) as future work.

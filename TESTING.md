@@ -42,7 +42,10 @@ validation sweep. The timing-based batch-vs-loop test is marked `performance`.
 
 ## Beyond pytest (executed, evidence in `docs/evidence/`)
 
-* Real-data pipeline: `01_pipeline_run_real_data.log`
+* Real-data pipeline: `01_pipeline_run_real_data.log` (local) and
+  `09_github_real_data_job_push.log` / `09_github_real_data_job_pull_request.log` (GitHub Actions)
+* Session-2 acceptance audit: `10_session2_acceptance_audit.log`,
+  `11_session2_retraining_rollback_audit.log`
 * API curl session: `02_api_curl_examples.txt`
 * Docker trainer + API container session: `03_docker_trainer_run.log`, `04_docker_api_session.log`
 * Monitoring + controlled drift: `05_monitoring_drift_test.log`

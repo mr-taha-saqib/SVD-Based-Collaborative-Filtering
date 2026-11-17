@@ -61,7 +61,7 @@ Every row below was executed and its output observed. Evidence files are in
 | Persistence across restart | `docker compose restart api` | same model; event log and feedback retained | `04_docker_api_session.log` | PASS |
 | Logs + clean stop | `docker compose logs`, `down` | JSON logs; containers removed, volumes kept | `04_docker_api_session.log` | PASS |
 | GitHub Actions | push to `mlops-production-delivery` | run [43967692965](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43967692965): **failed** on Python 3.11 (numpy 2.5 needs ≥ 3.12). Fixed; run [43967996915](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43967996915): lint+tests 3.12 ✔, 3.13 ✔ (144 passed), Docker build + container inference ✔; final run [43981234844](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/43981234844) ✔ (all jobs) | Actions | PASS |
-| Real-data CI job | `workflow_dispatch` / push to `main` | not triggered: runs only on `main` or manual dispatch, and this session's GitHub token could not dispatch workflows | – | BLOCKED (executed locally instead) |
+| Real-data CI job | push + pull_request on commit `75976e4` (session 2) | fresh download, SHA-256 verified, 100,836 ratings, split 70,579 / 10,093 / 20,164, k = 20, val RMSE 0.8729, test RMSE 0.8853, 0 shared train/test pairs; runs [44072171688](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/44072171688), [44072182735](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/44072182735) | `docs/evidence/09_github_real_data_job_*.log` | PASS (session 1: BLOCKED, executed locally) |
 | Documentation | files present, commands executed | README + 11 documents; every command in README executed in this run | repo | PASS |
 | Security review | `git grep` for keys/tokens/private keys; `.env` ignored | 0 findings; no secrets, datasets or models committed | – | PASS |
 
@@ -105,8 +105,26 @@ Every row below was executed and its output observed. Evidence files are in
 
 ## 6. Decision
 
-All mandatory acceptance items passed except the real-data CI job, which was
-executed locally but could not be triggered on GitHub from this session. The project
+All mandatory acceptance items passed, including (since session 2) the real-data CI job
+on GitHub Actions. The project
 is ready for client **handover as a reproducible, tested, containerised service and
 reference implementation**. It is not ready for commercial production use until the
 MovieLens licence question is resolved and the ranking-quality finding is addressed.
+
+## 7. Follow-up verification, session 2 (2026-11-17)
+
+Re-inspected the remote state first (no assumptions carried over from session 1).
+
+| Item | Result | Evidence | Status |
+|---|---|---|---|
+| Real-data CI job on GitHub | The job condition now also covers pull requests and the delivery branch, plus a step asserting the corrected methodology (leakage check passed, 0 shared train/test pairs, rank selected by validation RMSE, dataset checksum). Push run [44072171688](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/44072171688) and PR run [44072182735](https://github.com/mr-taha-saqib/SVD-Based-Collaborative-Filtering/actions/runs/44072182735) on commit `75976e4`: fresh download, SHA-256 verified, 100,836 ratings, split 70,579 / 10,093 / 20,164, k = 20, val RMSE 0.8729, test RMSE 0.8853. (A direct `workflow_dispatch` call was not available from this session; the branch push and the PR triggered the job instead.) | `docs/evidence/09_github_real_data_job_*.log` | PASS |
+| pytest / ruff | 145 passed; ruff clean | `docs/evidence/10_session2_acceptance_audit.log` | PASS |
+| Docker | image `889b3e2631a3` (396 MB); healthy; user 1 → personalised SVD list; unknown user → popularity fallback; predict 4.9619; user 0 → 422; normal traffic input ok (PSI 0.027), drift traffic alert (PSI 16.78); uid 10001 | same | PASS |
+| Retraining audit (registry copy) | dry run passes gate and changes nothing; promotion; rollback to the previous version; delivered registry unchanged | `docs/evidence/11_session2_retraining_rollback_audit.log` | PASS |
+| Licence documentation | DATA_CARD, README, DELIVERY_SUMMARY, release notes state that commercial use needs written GroupLens permission or a commercially licensed / client-owned dataset; most-popular baseline comparison kept visible | docs | PASS |
+| Release tag + GitHub release | Tag push refused by the delivery session's Git proxy with the exact message `ERR push contains a ref outside refs/heads/*; only branch updates are permitted.` (diagnosed with `GIT_TRACE_CURL`; one attempt, not retried). The `gh` CLI has no usable token in this session. Creating the tag through the REST API was **not** attempted because it would bypass that policy. Release notes are ready in `docs/releases/v1.0.0-mlops.md`; publish commands are in `CLIENT_DELIVERY_GUIDE.md` §15 | this section | BLOCKED (permission: the session may update branches only, not tags or releases) |
+| PR #1 review | diff vs `main` re-reviewed: no secrets, no weights, no databases, no virtual environments or caches; original research / historical files byte-identical where they must be | `git diff origin/main` | PASS; PR left **open and unmerged** pending owner approval |
+| Commercial production readiness | not claimed | – | n/a |
+
+Outstanding external decisions (not completable by the delivery team): owner approval to
+merge PR #1; publishing the tag and release; written GroupLens permission or a commercially licensed / client-owned dataset before commercial use; online validation of ranking quality; client acceptance.

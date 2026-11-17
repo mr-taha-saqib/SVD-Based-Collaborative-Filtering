@@ -1,0 +1,6 @@
+Wrote 3000 SYNTHETIC feedback rows (new_users) to /tmp/svd-audit/fb.csv
+  "decision": "dry_run_gate_passed",
+  "decision": "promoted",
+  "approved_after": "svd-k20-fce385dc-7e85e1de",
+{"rolled_back_to": "svd-k20-fce385dc-c6b9d577"}
+approved after rollback: svd-k20-fce385dc-c6b9d577
