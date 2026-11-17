@@ -1,0 +1,117 @@
+# Captured 2026-11-17T18:46:46Z against svd-k20-fce385dc-c6b9d577 (local uvicorn, MovieLens latest-small). Public research data only.
+
+=== 1. Health
+$ GET /health
+{
+    "status": "ok",
+    "model_loaded": true,
+    "model_version": "svd-k20-fce385dc-c6b9d577",
+    "api_version": "1.0.0",
+    "detail": null
+}
+
+=== 2. Model information
+$ GET /model/info
+{
+  "model_version": "svd-k20-fce385dc-c6b9d577",
+  "algorithm": "truncated SVD with additive bias decomposition",
+  "k": 20,
+  "n_users": 610,
+  "n_items": 8578,
+  "serving_policy": {
+    "min_item_ratings": 5,
+    "exclude_rated": true,
+    "cold_start": "most-popular items by training rating count"
+  },
+  "limits": {
+    "default_n": 10,
+    "max_n": 100
+  }
+}
+
+=== 3. Top-5 recommendations for a known user (SVD)
+$ GET /recommendations/1?n=5
+user 1  strategy svd  known_user True  returned 5/5
+   1. Never Cry Wolf (1983)  predicted 5.00
+   2. Batman: Mask of the Phantasm (1993)  predicted 5.00
+   3. Guess Who's Coming to Dinner (1967)  predicted 5.00
+   4. Paths of Glory (1957)  predicted 5.00
+   5. American Splendor (2003)  predicted 5.00
+
+=== 4. Unknown user: popularity fallback (cold start)
+$ GET /recommendations/999999?n=3
+user 999999  strategy popularity_fallback  known_user False  returned 3/3
+   1. Forrest Gump (1994)
+   2. Shawshank Redemption, The (1994)
+   3. Pulp Fiction (1994)
+
+=== 5. Same user, excluding the previous top movie (3347) and an unknown id
+$ POST /recommendations
+user 1  strategy svd  known_user True  returned 3/3
+   1. Batman: Mask of the Phantasm (1993)  predicted 5.00
+   2. Guess Who's Coming to Dinner (1967)  predicted 5.00
+   3. Paths of Glory (1957)  predicted 5.00
+  unknown excluded ids: [99999999]
+
+=== 6. Predict a rating for a user-movie pair
+$ POST /predict
+{
+    "user_id": 1,
+    "movie_id": 50,
+    "predicted_rating": 4.9619,
+    "method": "svd",
+    "known_user": true,
+    "known_movie": true,
+    "model_version": "svd-k20-fce385dc-c6b9d577"
+}
+
+=== 7. Invalid input is rejected with HTTP 422
+$ GET /recommendations/0
+HTTP 422
+
+=== 8. Record an observed rating (delayed ground truth, used for retraining)
+$ POST /feedback
+{
+    "accepted": true,
+    "stored": true,
+    "model_version": "svd-k20-fce385dc-c6b9d577"
+}
+
+=== 9. Monitoring summary
+$ GET /monitoring/summary
+{
+  "model_version": "svd-k20-fce385dc-c6b9d577",
+  "requests_in_window": 3,
+  "rates": {
+    "cold_start_fallback": 0.3333,
+    "unknown_user": 0.3333,
+    "short_response": 0.0
+  },
+  "input_drift": {
+    "status": "insufficient_data",
+    "psi": 10.0431
+  },
+  "prediction_drift": {
+    "status": "insufficient_data",
+    "psi": 0.266
+  },
+  "observed_performance": {
+    "status": "insufficient_labels",
+    "n_labelled": 1,
+    "required": 30,
+    "note": "No performance claim is made without enough labelled feedback."
+  }
+}
+
+=== 10. Prometheus metrics (first lines)
+$ GET /metrics
+recsys_requests_total{endpoint="/health",status="200"} 2.0
+recsys_requests_total{endpoint="/model/info",status="200"} 1.0
+recsys_requests_total{endpoint="/recommendations/{user_id}",status="200"} 2.0
+recsys_requests_total{endpoint="/recommendations",status="200"} 1.0
+recsys_requests_total{endpoint="/predict",status="200"} 1.0
+recsys_requests_total{endpoint="/recommendations/{user_id}",status="422"} 1.0
+recsys_requests_total{endpoint="/feedback",status="202"} 1.0
+recsys_requests_total{endpoint="/monitoring/summary",status="200"} 1.0
+
+Demo finished.

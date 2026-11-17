@@ -390,6 +390,7 @@ def main(argv: list[str] | None = None) -> int:
         except RegistryError as exc:
             logger.error("Rollback not possible: %s", exc)
             return 1
+        Tracker(cfg).mirror_alias("champion", v)    # keep the MLflow alias in step with the registry
         print(json.dumps({"rolled_back_to": v}))
         return 0
     if not args.feedback:

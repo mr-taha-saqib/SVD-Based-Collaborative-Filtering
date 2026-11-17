@@ -11,7 +11,7 @@ container deployment.
 | CPU | 1 core | 1–2 cores |
 | RAM | ~300 MB in use; 1 GB limit set in compose | ~1.5 GB (latest-small); ~3 GB for ML-1M |
 | GPU | not used | not used |
-| Disk | image 396 MB + model ≈ 2 MB | image 1.28 GB + dataset 3 MB + MLflow |
+| Disk | image ≈ 423 MB + model ≈ 2 MB | image ≈ 1.3 GB + dataset 3 MB + MLflow |
 
 ## Images
 

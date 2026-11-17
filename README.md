@@ -1,5 +1,8 @@
 # SVD-Based Collaborative Filtering: Movie Recommendation Service
 
+**Client documentation starts at [CLIENT_README.md](CLIENT_README.md)** (installation, API, MLOps
+workflow, limitations, licensing). This README is the full engineering and research documentation.
+
 A movie recommender built on truncated **Singular Value Decomposition** of the
 MovieLens rating matrix, extended from an academic study into a reproducible,
 tested service: leakage-free evaluation, a FastAPI inference API, MLflow experiment
