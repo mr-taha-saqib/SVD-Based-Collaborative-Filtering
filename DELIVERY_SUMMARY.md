@@ -15,7 +15,7 @@ ranking quality, deployment security prerequisites in SECURITY.md).**
 | Retraining | gated promotion, dry-run, rollback, reports | yes, promote + reject + rollback executed |
 | CI | GitHub Actions: lint, tests 3.12/3.13, Docker smoke test, real-data pipeline | yes, runs 44072171688 (push) and 44072182735 (PR) green on `75976e4` |
 | Release | notes in `docs/releases/v1.0.0-mlops.md` | tag/release **not published**: the delivery session may push branches only (see FINAL_E2E_ACCEPTANCE.md §7) |
-| Tests | 155 (was 48; 8 of the original failed with pandas 3) | yes |
+| Tests | 156 (was 48; 8 of the original failed with pandas 3) | yes |
 | Security review | `SECURITY.md`: 5 fixes (token comparison, pseudonymisation salt, image permissions, registry permissions, base-image pip/setuptools); localhost-only, read-only, capability-dropped Compose | yes, tests + container session |
 | Alternative dataset | MovieTweetings pipeline (separate registry/outputs); licence assessment `docs/DATASET_LICENSING.md` | yes, run + API + Docker + retraining |
 

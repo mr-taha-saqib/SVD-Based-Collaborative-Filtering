@@ -1,0 +1,8 @@
+$ fresh clone 60759bdd88db7af21d8f33459b107c9e5d4e0aee ; uv venv (python 3.12.3)
+installed 99 packages
+$ ruff check src tests scripts
+All checks passed!
+$ pytest -q --cov=src
+-----------------------------------------------
+TOTAL                        2690    447    83%
+156 passed, 1 warning in 49.52s

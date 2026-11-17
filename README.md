@@ -120,7 +120,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md).
 │   ├── logging_utils.py   JSON / text structured logging
 │   └── visualizations.py  figures
 ├── scripts/               synthetic data, demo model, traffic simulator, feedback generator
-├── tests/                 155 tests (unit, API, integration, MLflow, monitoring, retraining)
+├── tests/                 156 tests (unit, API, integration, MLflow, monitoring, retraining)
 ├── outputs/corrected/     corrected results, split manifest, plots
 ├── outputs/               HISTORICAL results of the previous method (labelled)
 ├── docs/evidence/         logs captured during the acceptance run
@@ -239,7 +239,7 @@ using explicit criteria; the test set is never read. See [RETRAINING.md](RETRAIN
 ## 12. Testing and CI
 
 ```bash
-pytest                         # 155 tests, ~30 s, synthetic fixtures, no network
+pytest                         # 156 tests, ~30 s, synthetic fixtures, no network
 ruff check src tests scripts
 ```
 

@@ -2,7 +2,7 @@
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                   # 155 tests, ~35 s, offline, synthetic fixtures
+pytest                                   # 156 tests, ~35 s, offline, synthetic fixtures
 pytest -m "not performance"              # what CI runs (skips the timing-based check)
 pytest --cov=src --cov-report=term       # coverage (83 % of src/ in the acceptance run)
 ruff check src tests scripts
@@ -21,10 +21,11 @@ that "SVD beats the global mean" is a meaningful assertion.
 | `test_data_layer.py` | 20 | validation rules, duplicates, fingerprint, 3-way split (disjoint, complete, deterministic, order-invariant), leakage detector, checksum-verified extraction, path traversal, config |
 | `test_ranking.py` | 5 | top-N masking, NDCG values, oracle scorer, recall denominator |
 | `test_recommender.py` | 10 | artifact reload equality, exclusion of rated items, cold start, titles, fallback methods, tamper detection |
-| `test_registry.py` | 10 | register ≠ approve, reasons required, promotion keeps previous, rollback, rejection, idempotence, unsafe ids |
-| `test_monitoring.py` | 6 | PSI, statuses, normal vs controlled drift, delayed-label performance, pseudonymised log |
+| `test_registry.py` | 11 | register ≠ approve, reasons required, promotion keeps previous, rollback, rejection, idempotence, unsafe ids, version directories readable by other users |
+| `test_monitoring.py` | 9 | PSI, statuses, normal vs controlled drift, delayed-label performance, pseudonymised log, random salt when unset or placeholder, configured salt used |
 | `test_retrain.py` | 17 | every gate criterion, feedback validation, data requirements, promote/reject, dry run, **test partition never read**, mismatched base data, unique report names, clean rollback error |
-| `test_api.py` | 24 | all endpoints, schemas, 422 cases, malformed JSON, cold start, exclusions, 503 without model, reload auth, OpenAPI |
+| `test_api.py` | 24 | all endpoints, schemas, 422 cases, malformed JSON, cold start, exclusions, 503 without model, reload auth (missing / wrong / near-miss token), OpenAPI |
+| `test_movietweetings.py` | 7 | rescaling and zero-rating drop, 20-core, duplicate handling, out-of-range ratings, movie parsing, `users.dat` never opened, checksum mismatch aborts, separate output/registry/MLflow locations |
 | `test_integration.py` | 4 | pipeline outputs + validation argmin, **selection never sees test**, MLflow run + `champion` alias, full lifecycle (pipeline → API → retraining) |
 
 ## Review of the original suite
@@ -51,3 +52,6 @@ validation sweep. The timing-based batch-vs-loop test is marked `performance`.
 * Monitoring + controlled drift: `05_monitoring_drift_test.log`
 * Retraining scenarios: `06_retraining_e2e.log`, `retraining_reports/`
 * Test run: `07_pytest_output.txt`, `07_pytest_junit.xml`
+* Session 3: clean-install run `15_session3_clean_install_tests.log` (156 passed), hardened Docker
+  `12_session3_docker_hardened_compose.log`, monitoring + retraining `13_session3_monitoring_retraining_movielens.log`,
+  MLflow `14_session3_mlflow_records.log`, MovieTweetings `movietweetings/01-04_*.log`

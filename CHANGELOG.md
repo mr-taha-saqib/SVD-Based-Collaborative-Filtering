@@ -17,7 +17,7 @@
 * Separate MovieTweetings pipeline (`src/movietweetings.py`, `src/run_movietweetings.py`),
   results in `outputs/external/movietweetings/`, `docs/MOVIETWEETINGS_EVALUATION.md`.
 * `docs/DATASET_LICENSING.md` (MovieLens commercial route, alternatives, MovieTweetings terms).
-* 10 tests (155 total).
+* 11 tests (156 total).
 
 ### Unchanged
 * MovieLens methodology, data, split, selected k and all published results.
