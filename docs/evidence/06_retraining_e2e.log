@@ -1,0 +1,68 @@
+### 0. generate SYNTHETIC feedback (demonstration data only)
+Wrote 3009 SYNTHETIC feedback rows (invalid) to /tmp/e2e/fb_invalid.csv
+Wrote 3000 SYNTHETIC feedback rows (noise) to /tmp/e2e/fb_noise.csv
+Wrote 3000 SYNTHETIC feedback rows (new_users) to /tmp/e2e/fb_new_users.csv
+Wrote 40 SYNTHETIC feedback rows (consistent) to /tmp/e2e/fb_tiny.csv
+### 1. too little feedback -> rejected by data requirements
+{
+  "decision": "rejected_data_requirements",
+  "promoted": false,
+  "approved_version": "svd-k20-fce385dc-c6b9d577",
+  "candidate_version": null,
+  "approved_after": null,
+  "mlflow_run_id": null
+}
+### 2. malformed rows (dry run) -> invalid rows dropped, nothing changes
+02:50:14  INFO      data_loader  Loaded 100836 ratings | 610 users | 9724 items | duplicates resolved: 0
+02:50:23  INFO      retrain  Retraining decision: dry_run_gate_failed (approved now: svd-k20-fce385dc-c6b9d577)
+  "decision": "dry_run_gate_failed",
+{
+  "decision": "dry_run_gate_failed",
+  "promoted": false,
+  "approved_version": "svd-k20-fce385dc-c6b9d577",
+  "candidate_version": null,
+  "approved_after": "svd-k20-fce385dc-c6b9d577",
+  "mlflow_run_id": "21e1d07a78a94be5813b1f7437997b54"
+}
+### 3. random-noise feedback -> candidate trained, evaluated on validation, gate decides
+{
+  "decision": "rejected_by_gate",
+  "promoted": false,
+  "approved_version": "svd-k20-fce385dc-c6b9d577",
+  "candidate_version": "svd-k20-fce385dc-baf57cab",
+  "approved_after": "svd-k20-fce385dc-c6b9d577",
+  "mlflow_run_id": "6a7df9cf6a174d6a80dfd3b52192abb0"
+}
+### 4. new-user feedback -> candidate trained, evaluated on validation, gate decides
+{
+  "decision": "promoted",
+  "promoted": true,
+  "approved_version": "svd-k20-fce385dc-c6b9d577",
+  "candidate_version": "svd-k20-fce385dc-9180e770",
+  "approved_after": "svd-k20-fce385dc-9180e770",
+  "mlflow_run_id": "a56a3717703148aa86dea280483054b8"
+}
+### 5. same feedback again (idempotence)
+{
+  "decision": "rejected_data_requirements",
+  "promoted": false,
+  "approved_version": "svd-k20-fce385dc-9180e770",
+  "candidate_version": null,
+  "approved_after": null,
+  "mlflow_run_id": null
+}
+### 6. registry state
+approved: svd-k20-fce385dc-9180e770
+history: ['svd-k20-fce385dc-c6b9d577']
+2026-11-16T21:46:41Z registered svd-k20-fce385dc-c6b9d577
+2026-11-16T21:46:41Z approved svd-k20-fce385dc-c6b9d577
+2026-11-16T21:50:34Z registered svd-k20-fce385dc-baf57cab
+2026-11-16T21:50:34Z rejected svd-k20-fce385dc-baf57cab
+2026-11-16T21:50:40Z registered svd-k20-fce385dc-9180e770
+2026-11-16T21:50:40Z approved svd-k20-fce385dc-9180e770
+svd-k20-fce385dc-9180e770
+svd-k20-fce385dc-baf57cab
+svd-k20-fce385dc-c6b9d577
+### 7. rollback
+{"rolled_back_to": "svd-k20-fce385dc-c6b9d577"}
+approved after rollback: svd-k20-fce385dc-c6b9d577

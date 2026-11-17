@@ -1,0 +1,36 @@
+03:22:21  INFO      data_loader  Downloading https://files.grouplens.org/datasets/movielens/ml-1m.zip
+03:22:22  INFO      data_loader  Downloaded /home/claude/svd-based-collaborative-filtering/data/ml-1m.zip (sha256 a6898adb50b9ca05)
+03:22:22  INFO      data_loader  ML-1M extraction complete -> /home/claude/svd-based-collaborative-filtering/data/ml-1m/ratings.dat
+03:22:25  INFO      data_loader  Loaded ML-1M: 1000209 ratings | 6040 users | 3706 items | density 4.47%
+03:22:28  INFO      data_loader  Split -> train 700243 | validation 99950 | test 200016 (users kept train-only: 0)
+03:22:28  INFO      data_loader  Matrix shape: 6040 x 3651 | Observed: 700243 | Density: 3.1754%
+03:22:33  INFO      training  SVD of 6040x3651 train matrix via randomized(n_components=220) in 3.55s
+03:22:33  INFO      evaluation  SVD k=5                         RMSE=0.9087  MAE=0.7145  N=99950  fallback=22
+03:22:33  INFO      evaluation  SVD k=10                        RMSE=0.9040  MAE=0.7104  N=99950  fallback=22
+03:22:33  INFO      evaluation  SVD k=20                        RMSE=0.9013  MAE=0.7078  N=99950  fallback=22
+03:22:33  INFO      evaluation  SVD k=50                        RMSE=0.9030  MAE=0.7090  N=99950  fallback=22
+03:22:33  INFO      evaluation  SVD k=100                       RMSE=0.9081  MAE=0.7130  N=99950  fallback=22
+03:22:34  INFO      evaluation  SVD k=200                       RMSE=0.9156  MAE=0.7198  N=99950  fallback=22
+03:22:34  INFO      training  Validation-selected rank k=20 (validation RMSE 0.9013)
+03:22:35  INFO      evaluation  Global Mean                     RMSE=1.1161  MAE=0.9328  N=99950  fallback=22
+03:22:35  INFO      evaluation  User Mean                       RMSE=1.0357  MAE=0.8286  N=99950  fallback=22
+03:22:35  INFO      evaluation  Item Mean                       RMSE=0.9802  MAE=0.7827  N=99950  fallback=22
+03:22:35  INFO      evaluation  User+Item Bias                  RMSE=0.9319  MAE=0.7351  N=99950  fallback=22
+03:22:35  INFO      evaluation  SVD k=20                        RMSE=0.9013  MAE=0.7078  N=99950  fallback=22
+03:22:35  INFO      evaluation  Global Mean                     RMSE=1.1170  MAE=0.9333  N=200016  fallback=57
+03:22:35  INFO      evaluation  User Mean                       RMSE=1.0369  MAE=0.8295  N=200016  fallback=57
+03:22:35  INFO      evaluation  Item Mean                       RMSE=0.9803  MAE=0.7823  N=200016  fallback=57
+03:22:35  INFO      evaluation  User+Item Bias                  RMSE=0.9318  MAE=0.7341  N=200016  fallback=57
+03:22:35  INFO      evaluation  SVD k=20                        RMSE=0.9013  MAE=0.7070  N=200016  fallback=57
+         model  partition     rmse      mae      n  n_fallback
+   Global Mean validation 1.116136 0.932800  99950          22
+     User Mean validation 1.035654 0.828612  99950          22
+     Item Mean validation 0.980171 0.782667  99950          22
+User+Item Bias validation 0.931871 0.735051  99950          22
+      SVD k=20 validation 0.901301 0.707786  99950          22
+   Global Mean       test 1.116996 0.933287 200016          57
+     User Mean       test 1.036926 0.829520 200016          57
+     Item Mean       test 0.980262 0.782327 200016          57
+User+Item Bias       test 0.931821 0.734095 200016          57
+      SVD k=20       test 0.901256 0.707029 200016          57
+03:22:36  INFO      run_ml1m  ML-1M corrected pipeline complete: k=20 (validation-selected) in 15.0s

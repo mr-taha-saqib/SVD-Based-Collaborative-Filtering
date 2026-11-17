@@ -170,6 +170,68 @@ class SVDModel:
 
         return np.clip(self.mu + b_u + b_i + latent, clip[0], clip[1])
 
+    # ── unseen user / item fallback ────────────────────────────────────────────
+    def fallback_batch(
+        self,
+        user_indices: np.ndarray,
+        item_indices: np.ndarray,
+        clip: tuple[float, float] = (0.5, 5.0),
+    ) -> np.ndarray:
+        """Prediction when user and/or item is not in the training vocabulary.
+
+        An index of -1 marks "unknown". The latent term needs both factors, so it
+        is dropped: r_hat = mu + b_u (if known) + b_i (if known), clipped.
+        """
+        users = np.asarray(user_indices)
+        items = np.asarray(item_indices)
+        out = np.full(len(users), float(self.mu))
+        ku, ki = users >= 0, items >= 0
+        if len(self.user_bias):
+            out[ku] += self.user_bias[users[ku]]
+        if len(self.item_bias):
+            out[ki] += self.item_bias[items[ki]]
+        return np.clip(out, clip[0], clip[1])
+
+    # ── scoring for ranking ────────────────────────────────────────────────────
+    def score_users(self, user_indices: np.ndarray) -> np.ndarray:
+        """Unclipped predicted scores for every item, for the given users.
+
+        Ranking uses unclipped scores: clipping at 5.0 would create artificial
+        ties among the top items.
+        """
+        users = np.asarray(user_indices)
+        latent = (self.U_k[users] * self.sigma_k[np.newaxis, :]) @ self.Vt_k
+        out = latent + self.mu
+        if len(self.user_bias):
+            out = out + self.user_bias[users][:, np.newaxis]
+        if len(self.item_bias):
+            out = out + self.item_bias[np.newaxis, :]
+        return out
+
+    # ── persistence (no pickle) ────────────────────────────────────────────────
+    def to_arrays(self) -> dict[str, np.ndarray]:
+        """Plain numeric arrays, suitable for ``np.savez`` with allow_pickle=False."""
+        return {
+            "U_k": self.U_k, "sigma_k": self.sigma_k, "Vt_k": self.Vt_k,
+            "mu": np.array(self.mu, dtype=np.float64),
+            "user_bias": np.asarray(self.user_bias, dtype=np.float64),
+            "item_bias": np.asarray(self.item_bias, dtype=np.float64),
+            "all_singular_values": np.asarray(self.all_singular_values, dtype=np.float64),
+            "k": np.array(self.k, dtype=np.int64),
+        }
+
+    @classmethod
+    def from_arrays(cls, arrays) -> SVDModel:
+        """Inverse of :meth:`to_arrays` (accepts a dict or an ``NpzFile``)."""
+        return cls(
+            U_k=np.asarray(arrays["U_k"]), sigma_k=np.asarray(arrays["sigma_k"]),
+            Vt_k=np.asarray(arrays["Vt_k"]), mu=float(arrays["mu"]),
+            user_bias=np.asarray(arrays["user_bias"]),
+            item_bias=np.asarray(arrays["item_bias"]),
+            all_singular_values=np.asarray(arrays["all_singular_values"]),
+            k=int(arrays["k"]),
+        )
+
     # ── full reconstruction ────────────────────────────────────────────────────
     def reconstruct(self) -> np.ndarray:
         """Return the full (m x n) rank-k reconstruction matrix.

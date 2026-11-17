@@ -1,0 +1,122 @@
+ Container svd-based-collaborative-filtering-trainer-run-2424a1c81d23 Creating 
+ Container svd-based-collaborative-filtering-trainer-run-2424a1c81d23 Created 
+{"ts": "2026-11-16T21:47:21.198+00:00", "level": "INFO", "logger": "main", "message": "SVD-Based Collaborative Filtering - corrected train/validation/test pipeline"}
+{"ts": "2026-11-16T21:47:21.330+00:00", "level": "INFO", "logger": "data_loader", "message": "Loaded 100836 ratings | 610 users | 9724 items | duplicates resolved: 0"}
+{"ts": "2026-11-16T21:47:21.872+00:00", "level": "INFO", "logger": "data_loader", "message": "Split -> train 70579 | validation 10093 | test 20164 (users kept train-only: 0)"}
+{"ts": "2026-11-16T21:47:21.965+00:00", "level": "INFO", "logger": "data_loader", "message": "Matrix shape: 610 x 8578 | Observed: 70579 | Density: 1.3488%"}
+{"ts": "2026-11-16T21:47:43.152+00:00", "level": "INFO", "logger": "training", "message": "SVD of 610x8578 train matrix via full in 20.90s"}
+{"ts": "2026-11-16T21:47:43.175+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=5                         RMSE=0.8755  MAE=0.6714  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.185+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=10                        RMSE=0.8743  MAE=0.6702  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.194+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=20                        RMSE=0.8729  MAE=0.6691  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.205+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=50                        RMSE=0.8767  MAE=0.6724  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.219+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=100                       RMSE=0.8798  MAE=0.6751  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.236+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=150                       RMSE=0.8817  MAE=0.6769  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.259+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=200                       RMSE=0.8820  MAE=0.6772  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:43.261+00:00", "level": "INFO", "logger": "training", "message": "Validation-selected rank k=20 (validation RMSE 0.8729)"}
+{"ts": "2026-11-16T21:47:43.263+00:00", "level": "INFO", "logger": "svd_model", "message": "Variance criterion (tau=90%): k* = 263  (EV=90.05%)"}
+{"ts": "2026-11-16T21:47:43.638+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF training: k=20  lr=0.0050  reg=0.0200  epochs=20  |Omega|=70579"}
+{"ts": "2026-11-16T21:47:47.748+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF epoch   5/20  train RMSE=0.8789"}
+{"ts": "2026-11-16T21:47:51.424+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF epoch  10/20  train RMSE=0.8540"}
+{"ts": "2026-11-16T21:47:54.929+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF epoch  15/20  train RMSE=0.8408"}
+{"ts": "2026-11-16T21:47:59.107+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF epoch  20/20  train RMSE=0.8318"}
+{"ts": "2026-11-16T21:47:59.132+00:00", "level": "INFO", "logger": "evaluation", "message": "Global Mean                     RMSE=1.0438  MAE=0.8290  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:59.137+00:00", "level": "INFO", "logger": "evaluation", "message": "User Mean                       RMSE=0.9322  MAE=0.7311  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:59.143+00:00", "level": "INFO", "logger": "evaluation", "message": "Item Mean                       RMSE=0.9793  MAE=0.7582  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:59.148+00:00", "level": "INFO", "logger": "evaluation", "message": "User+Item Bias                  RMSE=0.8826  MAE=0.6775  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:59.264+00:00", "level": "INFO", "logger": "ranking", "message": "User+Item Bias         validation P@10=0.0017 R@10=0.0014 NDCG@10=0.0022 cov=0.005 users=581"}
+{"ts": "2026-11-16T21:47:59.274+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=20                        RMSE=0.8729  MAE=0.6691  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:59.524+00:00", "level": "INFO", "logger": "ranking", "message": "SVD k=20               validation P@10=0.0071 R@10=0.0040 NDCG@10=0.0092 cov=0.031 users=581"}
+{"ts": "2026-11-16T21:47:59.540+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF k=20                     RMSE=0.8613  MAE=0.6657  N=10093  fallback=433"}
+{"ts": "2026-11-16T21:47:59.683+00:00", "level": "INFO", "logger": "ranking", "message": "Most Popular           validation P@10=0.0568 R@10=0.0966 NDCG@10=0.0969 cov=0.013 users=581"}
+{"ts": "2026-11-16T21:47:59.686+00:00", "level": "INFO", "logger": "main", "message": "============================================================"}
+{"ts": "2026-11-16T21:47:59.687+00:00", "level": "INFO", "logger": "main", "message": "FINAL TEST EVALUATION: k=20 was fixed on validation before this point"}
+{"ts": "2026-11-16T21:47:59.687+00:00", "level": "INFO", "logger": "main", "message": "============================================================"}
+{"ts": "2026-11-16T21:47:59.694+00:00", "level": "INFO", "logger": "evaluation", "message": "Global Mean                     RMSE=1.0442  MAE=0.8266  N=20164  fallback=896"}
+{"ts": "2026-11-16T21:47:59.701+00:00", "level": "INFO", "logger": "evaluation", "message": "User Mean                       RMSE=0.9435  MAE=0.7350  N=20164  fallback=896"}
+{"ts": "2026-11-16T21:47:59.707+00:00", "level": "INFO", "logger": "evaluation", "message": "Item Mean                       RMSE=0.9782  MAE=0.7544  N=20164  fallback=896"}
+{"ts": "2026-11-16T21:47:59.713+00:00", "level": "INFO", "logger": "evaluation", "message": "User+Item Bias                  RMSE=0.8943  MAE=0.6834  N=20164  fallback=896"}
+{"ts": "2026-11-16T21:47:59.833+00:00", "level": "INFO", "logger": "ranking", "message": "User+Item Bias         test       P@10=0.0028 R@10=0.0009 NDCG@10=0.0024 cov=0.005 users=604"}
+{"ts": "2026-11-16T21:47:59.847+00:00", "level": "INFO", "logger": "evaluation", "message": "SVD k=20                        RMSE=0.8853  MAE=0.6754  N=20164  fallback=896"}
+{"ts": "2026-11-16T21:48:00.098+00:00", "level": "INFO", "logger": "ranking", "message": "SVD k=20               test       P@10=0.0103 R@10=0.0022 NDCG@10=0.0109 cov=0.029 users=604"}
+{"ts": "2026-11-16T21:48:00.120+00:00", "level": "INFO", "logger": "evaluation", "message": "SGD-MF k=20                     RMSE=0.8737  MAE=0.6708  N=20164  fallback=896"}
+{"ts": "2026-11-16T21:48:00.270+00:00", "level": "INFO", "logger": "ranking", "message": "Most Popular           test       P@10=0.1108 R@10=0.0923 NDCG@10=0.1470 cov=0.019 users=604"}
+
+VALIDATION (model selection)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 1.0438 0.8290           NaN        NaN      NaN               NaN
+     User Mean 0.9322 0.7311           NaN        NaN      NaN               NaN
+     Item Mean 0.9793 0.7582           NaN        NaN      NaN               NaN
+User+Item Bias 0.8826 0.6775        0.0017     0.0014   0.0022            0.0054
+      SVD k=20 0.8729 0.6691        0.0071     0.0040   0.0092            0.0311
+   SGD-MF k=20 0.8613 0.6657           NaN        NaN      NaN               NaN
+  Most Popular    NaN    NaN        0.0568     0.0966   0.0969            0.0132
+
+TEST (final, evaluated once)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 1.0442 0.8266           NaN        NaN      NaN               NaN
+     User Mean 0.9435 0.7350           NaN        NaN      NaN               NaN
+     Item Mean 0.9782 0.7544           NaN        NaN      NaN               NaN
+User+Item Bias 0.8943 0.6834        0.0028     0.0009   0.0024            0.0054
+      SVD k=20 0.8853 0.6754        0.0103     0.0022   0.0109            0.0294
+   SGD-MF k=20 0.8737 0.6708           NaN        NaN      NaN               NaN
+  Most Popular    NaN    NaN        0.1108     0.0923   0.1470            0.0186
+2026/11/16 21:48:02 INFO mlflow.store.db.utils: Creating initial MLflow database tables...
+2026/11/16 21:48:02 INFO mlflow.store.db.utils: Updating database tables
+{"ts": "2026-11-16T21:48:05.581+00:00", "level": "INFO", "logger": "tracking", "message": "MLflow tracking -> sqlite:////mlflow-data/mlflow.db (experiment svd-movie-recommender)"}
+2026/11/16 21:48:05 WARNING mlflow.utils.git_utils: Failed to import Git (the Git executable is probably not on your PATH), so Git SHA is not available. Error: Failed to initialize: Bad git executable.
+The git executable must be specified in one of the following ways:
+    - be included in your $PATH
+    - be set via $GIT_PYTHON_GIT_EXECUTABLE
+    - explicitly set via git.refresh(<full-path-to-git-executable>)
+
+All git commands will error until this is rectified.
+
+This initial message can be silenced or aggravated in the future by setting the
+$GIT_PYTHON_REFRESH environment variable. Use one of the following values:
+    - quiet|q|silence|s|silent|none|n|0: for no message or exception
+    - warn|w|warning|log|l|1: for a warning message (logging level CRITICAL, displayed by default)
+    - error|e|exception|raise|r|2: for a raised exception
+
+Example:
+    export GIT_PYTHON_REFRESH=quiet
+
+2026/11/16 21:48:05 WARNING mlflow.utils.git_utils: Failed to import Git (the Git executable is probably not on your PATH), so Git branch is not available. Error: Failed to initialize: Bad git executable.
+The git executable must be specified in one of the following ways:
+    - be included in your $PATH
+    - be set via $GIT_PYTHON_GIT_EXECUTABLE
+    - explicitly set via git.refresh(<full-path-to-git-executable>)
+
+All git commands will error until this is rectified.
+
+This initial message can be silenced or aggravated in the future by setting the
+$GIT_PYTHON_REFRESH environment variable. Use one of the following values:
+    - quiet|q|silence|s|silent|none|n|0: for no message or exception
+    - warn|w|warning|log|l|1: for a warning message (logging level CRITICAL, displayed by default)
+    - error|e|exception|raise|r|2: for a raised exception
+
+Example:
+    export GIT_PYTHON_REFRESH=quiet
+
+2026/11/16 21:48:05 WARNING mlflow.utils.git_utils: Failed to import Git (the Git executable is probably not on your PATH), so Git repository URL is not available. Error: Failed to initialize: Bad git executable.
+The git executable must be specified in one of the following ways:
+    - be included in your $PATH
+    - be set via $GIT_PYTHON_GIT_EXECUTABLE
+    - explicitly set via git.refresh(<full-path-to-git-executable>)
+
+All git commands will error until this is rectified.
+
+This initial message can be silenced or aggravated in the future by setting the
+$GIT_PYTHON_REFRESH environment variable. Use one of the following values:
+    - quiet|q|silence|s|silent|none|n|0: for no message or exception
+    - warn|w|warning|log|l|1: for a warning message (logging level CRITICAL, displayed by default)
+    - error|e|exception|raise|r|2: for a raised exception
+
+Example:
+    export GIT_PYTHON_REFRESH=quiet
+
+{"ts": "2026-11-16T21:48:06.214+00:00", "level": "INFO", "logger": "registry", "message": "Registered model version svd-k20-fce385dc-6cfca4f0"}
+{"ts": "2026-11-16T21:48:06.296+00:00", "level": "INFO", "logger": "tracking", "message": "MLflow registry: svd-movie-recommender version 1 registered"}
+{"ts": "2026-11-16T21:48:06.298+00:00", "level": "INFO", "logger": "registry", "message": "Approved model version svd-k20-fce385dc-6cfca4f0 (previous: None)"}
+{"ts": "2026-11-16T21:48:06.335+00:00", "level": "INFO", "logger": "tracking", "message": "MLflow registry: alias 'champion' -> svd-movie-recommender version 1"}
+{"ts": "2026-11-16T21:48:06.372+00:00", "level": "INFO", "logger": "tracking", "message": "MLflow run b3171550c95046dd8717a06815d007ea finished (svd-k20-train)"}
+{"ts": "2026-11-16T21:48:06.373+00:00", "level": "INFO", "logger": "main", "message": "Pipeline complete in 45.2s | k=20 | val RMSE 0.8729 | test RMSE 0.8853 | version svd-k20-fce385dc-6cfca4f0"}

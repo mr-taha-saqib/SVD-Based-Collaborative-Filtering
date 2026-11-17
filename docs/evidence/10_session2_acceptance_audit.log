@@ -1,0 +1,24 @@
+$ pytest -q
+145 passed, 1 warning in 23.42s
+$ ruff check src tests scripts
+All checks passed!
+$ docker build --target base
+sha256:889b3e2631a33407f7352b80fdeb3250b9dde9f37166454df156a074cbbbe853
+svd-recommender-api:1.0.0 889b3e2631a3 396MB
+volumes: svd-based-collaborative-filtering_dataset svd-based-collaborative-filtering_feedback svd-based-collaborative-filtering_mlflow-data svd-based-collaborative-filtering_models svd-based-collaborative-filtering_monitoring 
+$ docker compose up -d api
+ Container svd-based-collaborative-filtering-api-1 Started 
+health: healthy
+{"status":"ok","model_loaded":true,"model_version":"svd-k20-fce385dc-6cfca4f0","api_version":"1.0.0","detail":null}
+$ curl -s "localhost:8000/recommendations/1?n=3"
+svd svd-k20-fce385dc-6cfca4f0 [(3347, 'Never Cry Wolf (1983)'), (3213, 'Batman: Mask of the Phantasm (1993)'), (3451, "Guess Who's Coming to Dinner (1967)")]
+$ curl -s "localhost:8000/recommendations/999999?n=2"
+popularity_fallback True ['Forrest Gump (1994)', 'Shawshank Redemption, The (1994)']
+$ POST /predict user 1 movie 50
+{"user_id":1,"movie_id":50,"predicted_rating":4.9619,"method":"svd","known_user":true,"known_movie":true,"model_version":"svd-k20-fce385dc-6cfca4f0"}
+GET /recommendations/0 -> HTTP 422
+$ simulate_traffic normal 200 then drift 200 (same process)
+normal: input ok 0.027 | prediction ok
+drift (fresh process): input alert 16.7764 | cold start 1.0
+10001
+ Network svd-based-collaborative-filtering_default Removed 

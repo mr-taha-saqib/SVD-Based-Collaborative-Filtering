@@ -36,7 +36,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
@@ -120,6 +120,7 @@ class EvalResult:
     mae:        float
     n_samples:  int
     elapsed_s:  float = 0.0
+    n_fallback: int   = 0
 
 
 # ── evaluation harness ────────────────────────────────────────────────────────
@@ -199,7 +200,7 @@ class GlobalMeanBaseline:
     def __init__(self) -> None:
         self.mu: Optional[float] = None
 
-    def fit(self, R: np.ndarray) -> "GlobalMeanBaseline":
+    def fit(self, R: np.ndarray) -> GlobalMeanBaseline:
         """Fit by computing the global mean of observed entries.
 
         Args:
@@ -220,6 +221,10 @@ class GlobalMeanBaseline:
         """Vectorised version of predict."""
         return np.full(len(users), self.mu)
 
+    def fallback_batch(self, users: np.ndarray, items: np.ndarray) -> np.ndarray:
+        """Prediction when the user and/or item is absent from training (index -1)."""
+        return np.full(len(users), self.mu, dtype=float)
+
 
 class UserMeanBaseline:
     """User mean baseline: r_hat_{ui} = mu_u.
@@ -232,7 +237,7 @@ class UserMeanBaseline:
         self.user_means: Optional[np.ndarray] = None
         self.global_mean: Optional[float] = None
 
-    def fit(self, R: np.ndarray) -> "UserMeanBaseline":
+    def fit(self, R: np.ndarray) -> UserMeanBaseline:
         """Fit per-user means from observed entries.
 
         Args:
@@ -255,6 +260,14 @@ class UserMeanBaseline:
         """Vectorised version of predict."""
         return self.user_means[users]  # type: ignore[index]
 
+    def fallback_batch(self, users: np.ndarray, items: np.ndarray) -> np.ndarray:
+        """User mean if the user is known (index >= 0), else the global mean."""
+        users = np.asarray(users)
+        out = np.full(len(users), self.global_mean, dtype=float)
+        known = users >= 0
+        out[known] = self.user_means[users[known]]  # type: ignore[index]
+        return out
+
 
 class ItemMeanBaseline:
     """Item mean baseline: r_hat_{ui} = mu_i.
@@ -268,7 +281,7 @@ class ItemMeanBaseline:
         self.item_means: Optional[np.ndarray] = None
         self.global_mean: Optional[float] = None
 
-    def fit(self, R: np.ndarray) -> "ItemMeanBaseline":
+    def fit(self, R: np.ndarray) -> ItemMeanBaseline:
         """Fit per-item means from observed entries.
 
         Args:
@@ -291,6 +304,14 @@ class ItemMeanBaseline:
         """Vectorised version of predict."""
         return self.item_means[items]  # type: ignore[index]
 
+    def fallback_batch(self, users: np.ndarray, items: np.ndarray) -> np.ndarray:
+        """Item mean if the item is known (index >= 0), else the global mean."""
+        items = np.asarray(items)
+        out = np.full(len(items), self.global_mean, dtype=float)
+        known = items >= 0
+        out[known] = self.item_means[items[known]]  # type: ignore[index]
+        return out
+
 
 class UserItemMeanBaseline:
     """Additive bias model: r_hat_{ui} = mu + b_u + b_i.
@@ -306,7 +327,7 @@ class UserItemMeanBaseline:
         self.user_bias: Optional[np.ndarray] = None
         self.item_bias: Optional[np.ndarray] = None
 
-    def fit(self, R: np.ndarray) -> "UserItemMeanBaseline":
+    def fit(self, R: np.ndarray) -> UserItemMeanBaseline:
         """Fit bias terms using the same center_matrix procedure as SVD.
 
         Args:
@@ -328,6 +349,10 @@ class UserItemMeanBaseline:
         """Vectorised version of predict."""
         preds = self.mu + self.user_bias[users] + self.item_bias[items]  # type: ignore
         return np.clip(preds, 0.5, 5.0)
+
+    def fallback_batch(self, users: np.ndarray, items: np.ndarray) -> np.ndarray:
+        """mu + b_u (if user known) + b_i (if item known), clipped."""
+        return bias_fallback(self.mu, self.user_bias, self.item_bias, users, items)
 
 
 # ── SGD matrix factorisation ──────────────────────────────────────────────────
@@ -369,6 +394,7 @@ class SGDMatrixFactorization:
         epochs:       int   = 20,
         clip:         tuple[float, float] = (0.5, 5.0),
         log_interval: int   = 5,
+        seed:         int   = 42,
     ) -> None:
         self.k            = k
         self.lr           = lr
@@ -376,8 +402,9 @@ class SGDMatrixFactorization:
         self.epochs       = epochs
         self.clip         = clip
         self.log_interval = log_interval
+        self.seed         = seed
 
-    def fit(self, R: np.ndarray) -> "SGDMatrixFactorization":
+    def fit(self, R: np.ndarray) -> SGDMatrixFactorization:
         """Train SGD-MF on the observed entries of R.
 
         Args:
@@ -387,7 +414,7 @@ class SGDMatrixFactorization:
             Self (fitted model).
         """
         m, n = R.shape
-        rng  = np.random.default_rng(42)
+        rng  = np.random.default_rng(self.seed)
 
         self.mu = float(np.nanmean(R))
         self.bu = np.zeros(m, dtype=np.float64)
@@ -440,6 +467,10 @@ class SGDMatrixFactorization:
         )
         return np.clip(preds, *self.clip)
 
+    def fallback_batch(self, users: np.ndarray, items: np.ndarray) -> np.ndarray:
+        """mu + b_u (if user known) + b_i (if item known), clipped; no latent term."""
+        return bias_fallback(self.mu, self.bu, self.bi, users, items, self.clip)
+
 
 # ── results table ──────────────────────────────────────────────────────────────
 def results_table(results: list[EvalResult]) -> pd.DataFrame:
@@ -463,3 +494,75 @@ def results_table(results: list[EvalResult]) -> pd.DataFrame:
     ]
     df = pd.DataFrame(rows)
     return df.sort_values("RMSE").reset_index(drop=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Vectorised, fallback-aware evaluation (corrected methodology)
+# ═══════════════════════════════════════════════════════════════════════════════
+def bias_fallback(
+    mu: float,
+    user_bias: np.ndarray,
+    item_bias: np.ndarray,
+    users: np.ndarray,
+    items: np.ndarray,
+    clip: tuple[float, float] = (0.5, 5.0),
+) -> np.ndarray:
+    """mu + b_u + b_i where an index of -1 (unknown) contributes 0."""
+    users = np.asarray(users)
+    items = np.asarray(items)
+    out = np.full(len(users), float(mu))
+    ku, ki = users >= 0, items >= 0
+    if len(user_bias):
+        out[ku] += np.asarray(user_bias)[users[ku]]
+    if len(item_bias):
+        out[ki] += np.asarray(item_bias)[items[ki]]
+    return np.clip(out, clip[0], clip[1])
+
+
+def map_indices(df: pd.DataFrame, user_idx: dict[int, int], item_idx: dict[int, int]) -> tuple[np.ndarray, np.ndarray]:
+    """Map userId / movieId columns to matrix indices, -1 where unknown."""
+    u = df["userId"].map(user_idx).fillna(-1).astype(np.int64).to_numpy()
+    i = df["movieId"].map(item_idx).fillna(-1).astype(np.int64).to_numpy()
+    return u, i
+
+
+def evaluate_pairs(
+    model_name: str,
+    model,
+    df: pd.DataFrame,
+    user_idx: dict[int, int],
+    item_idx: dict[int, int],
+) -> EvalResult:
+    """Evaluate every row of ``df`` (no rows are skipped).
+
+    Pairs whose user and item are both in the training vocabulary use
+    ``model.predict_batch``; pairs with an unseen user or item use the model's own
+    ``fallback_batch`` (e.g. mu + b_u for an unseen item). The number of fallback
+    predictions is reported so that cold-start exposure is visible.
+    """
+    if len(df) == 0:
+        raise ValueError(f"{model_name}: cannot evaluate on an empty partition")
+    t0 = time.perf_counter()
+    u, i = map_indices(df, user_idx, item_idx)
+    known = (u >= 0) & (i >= 0)
+    pred = np.empty(len(df), dtype=float)
+    if known.any():
+        pred[known] = model.predict_batch(u[known], i[known])
+    if (~known).any():
+        pred[~known] = model.fallback_batch(u[~known], i[~known])
+    y = df["rating"].to_numpy(dtype=float)
+    elapsed = time.perf_counter() - t0
+    res = EvalResult(model_name=model_name, rmse=rmse(y, pred), mae=mae(y, pred),
+                     n_samples=int(len(y)), elapsed_s=elapsed,
+                     n_fallback=int((~known).sum()))
+    logger.info("%-30s  RMSE=%.4f  MAE=%.4f  N=%d  fallback=%d", model_name,
+                res.rmse, res.mae, res.n_samples, res.n_fallback)
+    return res
+
+
+def results_frame(results: list[EvalResult], partition: str) -> pd.DataFrame:
+    """Like :func:`results_table` but labelled with the partition and fallback count."""
+    rows = [{"Model": r.model_name, "Partition": partition, "RMSE": round(r.rmse, 4),
+             "MAE": round(r.mae, 4), "N": r.n_samples, "N_fallback": r.n_fallback}
+            for r in results]
+    return pd.DataFrame(rows).sort_values("RMSE").reset_index(drop=True)

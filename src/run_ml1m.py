@@ -1,215 +1,116 @@
 """
 run_ml1m.py
 ===========
-Cross-dataset validation pipeline: runs the identical SVD methodology on
-MovieLens 1M (6,040 users x 3,706 items, ~1M ratings) and produces a
-cross-dataset comparison figure alongside ML-small results.
+Cross-dataset validation on MovieLens 1M (6,040 users x 3,706 items, ~1M ratings)
+using the CORRECTED methodology: train/validation/test split, rank selected on
+validation, test evaluated once.
 
-Key differences vs main.py:
-  - Uses sklearn randomised SVD (n_components=220) for the larger matrix.
-    This is O(m*n*k) vs O(m*n*min(m,n)) for full SVD — much faster.
-  - SGD-MF disabled (20 epochs x 1M ratings would take ~30 min).
-  - Rating clip set to [1.0, 5.0] matching ML-1M integer scale.
-  - Saves results to outputs/results_ml1m.csv.
-  - Loads ML-small results from outputs/results_table.csv for comparison.
-  - Generates outputs/plots/10_crossdataset_comparison.png.
+    python src/run_ml1m.py
+
+Differences from the ML-small pipeline (unchanged from the original study):
+  * randomised SVD (sklearn) with n_components = max(k) + 20, O(m*n*k) instead of
+    a full dense SVD;
+  * SGD-MF disabled (pure-Python SGD over 1M ratings is too slow to be useful here);
+  * rating clip [1, 5] (ML-1M uses integer ratings).
+
+Writes to outputs/corrected/ml1m/. The historical outputs/results_ml1m.csv (which
+selected k on the test set) is left untouched; see outputs/HISTORICAL_RESULTS.md.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import sys
 import time
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from sklearn.utils.extmath import randomized_svd
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from data_loader import (
-    load_ratings_ml1m,
-    train_test_split,
-    build_user_item_matrix,
-    center_matrix,
-    impute_matrix,
-)
-from svd_model import SVDModel, select_k_by_variance, eckart_young_error
-from evaluation import (
-    evaluate_model,
-    results_table,
+from data_loader import dataset_fingerprint, load_ratings_ml1m, train_val_test_split, validate_ratings  # noqa: E402
+from evaluation import (  # noqa: E402
     GlobalMeanBaseline,
-    UserMeanBaseline,
     ItemMeanBaseline,
     UserItemMeanBaseline,
+    UserMeanBaseline,
+    evaluate_pairs,
 )
-from visualizations import plot_crossdataset_comparison
+from logging_utils import setup_logging  # noqa: E402
+from settings import get, load_config, resolve_path  # noqa: E402
+from training import decompose, select_rank  # noqa: E402
 
-# ── config ────────────────────────────────────────────────────────────────────
-K_VALUES     = [5, 10, 20, 50, 100, 200]
-N_COMPONENTS = 220          # randomised SVD components (buffer above k_max=200)
-TEST_FRAC    = 0.20
-RANDOM_STATE = 42
-VAR_THRESH   = 0.90
-RATING_CLIP  = (1.0, 5.0)   # ML-1M uses integer ratings 1-5
-
-RESULTS_DIR  = Path(__file__).parent.parent / "outputs"
-PLOTS_DIR    = RESULTS_DIR / "plots"
-RESULTS_CSV  = RESULTS_DIR / "results_ml1m.csv"
-SMALL_CSV    = RESULTS_DIR / "results_table.csv"
+K_VALUES = [5, 10, 20, 50, 100, 200]
+RATING_CLIP = (1.0, 5.0)
 
 
-def _setup_logging() -> None:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
-        datefmt="%H:%M:%S",
-        handlers=[logging.StreamHandler(sys.stdout)],
-    )
+class _Clipped:
+    """Wrap a model so predictions use the ML-1M rating range."""
+
+    def __init__(self, model):
+        self.model = model
+
+    def predict_batch(self, u, i):
+        return self.model.predict_batch(u, i, clip=RATING_CLIP)
+
+    def fallback_batch(self, u, i):
+        return self.model.fallback_batch(u, i, clip=RATING_CLIP)
 
 
-def main() -> None:
-    _setup_logging()
+def main() -> int:
+    cfg = load_config()
+    out_dir = resolve_path(get(cfg, "output.corrected_dir", "outputs/corrected")) / "ml1m"
+    setup_logging("INFO", out_dir / "run.log")
     logger = logging.getLogger("run_ml1m")
+    t0 = time.perf_counter()
+    split_cfg = cfg.get("split", {})
 
-    logger.info("=" * 60)
-    logger.info("  Cross-Dataset Validation: MovieLens 1M Pipeline")
-    logger.info("=" * 60)
-    t_total = time.perf_counter()
+    df, dq = validate_ratings(load_ratings_ml1m(), rating_scale=(1.0, 5.0), rating_step=1.0)
+    sp = train_val_test_split(df, float(split_cfg.get("validation_fraction", 0.1)),
+                              float(split_cfg.get("test_fraction", 0.2)), int(split_cfg.get("random_state", 42)))
+    dec = decompose(sp.train, max(K_VALUES), solver="randomized", random_state=int(split_cfg.get("random_state", 42)))
 
-    # ── 1. Load ML-1M ─────────────────────────────────────────────────────────
-    df = load_ratings_ml1m()
+    # model selection on VALIDATION only (clipping to the ML-1M scale)
+    best_k, sweep = select_rank(_ClippedDecomposition(dec), K_VALUES, sp.validation)
+    sweep.to_csv(out_dir / "k_sweep_validation.csv", index=False)
 
-    # ── 2. Split ──────────────────────────────────────────────────────────────
-    train_df, test_df = train_test_split(df, test_frac=TEST_FRAC,
-                                         random_state=RANDOM_STATE)
+    models = [("Global Mean", GlobalMeanBaseline().fit(dec.R)), ("User Mean", UserMeanBaseline().fit(dec.R)),
+              ("Item Mean", ItemMeanBaseline().fit(dec.R)), ("User+Item Bias", UserItemMeanBaseline().fit(dec.R)),
+              (f"SVD k={best_k}", _Clipped(dec.model(best_k)))]
+    rows = []
+    for part, frame in (("validation", sp.validation), ("test", sp.test)):
+        for name, m in models:
+            r = evaluate_pairs(name, m, frame, dec.user_idx, dec.item_idx)
+            rows.append({"model": name, "partition": part, "rmse": r.rmse, "mae": r.mae, "n": r.n_samples,
+                         "n_fallback": r.n_fallback})
+    table = pd.DataFrame(rows)
+    table.to_csv(out_dir / "results.csv", index=False)
+    summary = {"dataset": "MovieLens 1M", "dataset_sha256": dataset_fingerprint(df),
+               "data_quality": dq.to_dict(), "split": sp.manifest, "selected_k": best_k,
+               "selection_metric": "validation RMSE", "svd_solver": dec.solver,
+               "results": rows, "seconds": round(time.perf_counter() - t0, 1)}
+    (out_dir / "final_metrics.json").write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
+    print(table.to_string(index=False))
+    logger.info("ML-1M corrected pipeline complete: k=%d (validation-selected) in %.1fs",
+                best_k, summary["seconds"])
+    return 0
 
-    # ── 3. Build matrix ───────────────────────────────────────────────────────
-    R, user_idx, item_idx = build_user_item_matrix(train_df, full_df=df)
 
-    # ── 4. Centre + impute ────────────────────────────────────────────────────
-    R_c, mu, user_bias, item_bias = center_matrix(R)
-    R_filled = impute_matrix(R_c, strategy="zero")
+class _ClippedDecomposition:
+    """Adapter so select_rank evaluates models with the ML-1M clip range."""
 
-    # ── 5. Randomised SVD (top N_COMPONENTS) ──────────────────────────────────
-    logger.info("Randomised SVD: matrix %s, n_components=%d ...",
-                R_filled.shape, N_COMPONENTS)
-    t_svd = time.perf_counter()
-    U_full, S_full, Vt_full = randomized_svd(
-        R_filled, n_components=N_COMPONENTS,
-        n_iter=4, random_state=RANDOM_STATE,
-    )
-    logger.info("Randomised SVD done in %.1fs | top sigma=%.2f | sigma_%d=%.4f",
-                time.perf_counter() - t_svd, S_full[0], N_COMPONENTS, S_full[-1])
+    def __init__(self, dec):
+        self._dec = dec
+        self.R, self.S, self.solver = dec.R, dec.S, dec.solver
+        self.user_idx, self.item_idx = dec.user_idx, dec.item_idx
 
-    # ── 6. k-sweep ────────────────────────────────────────────────────────────
-    logger.info("-" * 50)
-    logger.info("Rank-k sweep: %s", K_VALUES)
-    logger.info("-" * 50)
-
-    rmse_list: list[float] = []
-    mae_list:  list[float] = []
-    ey_list:   list[float] = []
-    m_dim, n_dim = R_filled.shape
-
-    for k in K_VALUES:
-        k_eff = min(k, len(S_full))
-        model_k = SVDModel(
-            U_k=U_full[:, :k_eff], sigma_k=S_full[:k_eff],
-            Vt_k=Vt_full[:k_eff, :], mu=mu,
-            user_bias=user_bias, item_bias=item_bias,
-            all_singular_values=S_full, k=k_eff,
-        )
-        res = evaluate_model(f"SVD  k={k:3d}",
-                             lambda u, i, m=model_k: m.predict(u, i, clip=RATING_CLIP),
-                             test_df, user_idx, item_idx)
-        rmse_list.append(res.rmse)
-        mae_list.append(res.mae)
-
-        ey_raw  = eckart_young_error(S_full, k_eff)
-        ey_norm = ey_raw / np.sqrt(m_dim * n_dim)
-        ey_list.append(ey_norm)
-
-    best_idx = int(np.argmin(rmse_list))
-    BEST_K   = K_VALUES[best_idx]
-    k_var    = select_k_by_variance(S_full, threshold=VAR_THRESH)
-    logger.info("Best k = %d  (RMSE=%.4f)  |  k(90%% EV) = %d",
-                BEST_K, rmse_list[best_idx], k_var)
-
-    # ── 7. Baselines ──────────────────────────────────────────────────────────
-    logger.info("Fitting baselines...")
-    k_eff   = min(BEST_K, len(S_full))
-    best_model = SVDModel(
-        U_k=U_full[:, :k_eff], sigma_k=S_full[:k_eff],
-        Vt_k=Vt_full[:k_eff, :], mu=mu,
-        user_bias=user_bias, item_bias=item_bias,
-        all_singular_values=S_full, k=k_eff,
-    )
-
-    eval_results = []
-    baselines = [
-        ("Global Mean",    GlobalMeanBaseline().fit(R)),
-        ("User Mean",      UserMeanBaseline().fit(R)),
-        ("Item Mean",      ItemMeanBaseline().fit(R)),
-        ("User+Item Bias", UserItemMeanBaseline().fit(R)),
-    ]
-    for label, mdl in baselines:
-        eval_results.append(
-            evaluate_model(label, mdl.predict, test_df, user_idx, item_idx)
-        )
-    eval_results.append(
-        evaluate_model(
-            f"SVD  k={BEST_K}",
-            lambda u, i: best_model.predict(u, i, clip=RATING_CLIP),
-            test_df, user_idx, item_idx,
-        )
-    )
-
-    # ── 8. Save results ───────────────────────────────────────────────────────
-    logger.info("=" * 55)
-    logger.info("  ML-1M RESULTS TABLE")
-    logger.info("=" * 55)
-    table = results_table(eval_results)
-    print("\n" + table.to_string(index=False))
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    table.to_csv(RESULTS_CSV, index=False)
-    logger.info("Results saved -> %s", RESULTS_CSV)
-
-    # ── 9. Cross-dataset comparison plot ──────────────────────────────────────
-    if SMALL_CSV.exists():
-        small_table = pd.read_csv(SMALL_CSV)
-        logger.info("Generating cross-dataset comparison plot...")
-        svd_rows = small_table[small_table["Model"].str.startswith("SVD")]
-        if len(svd_rows) > 0:
-            small_best_rmse = float(svd_rows["RMSE"].iloc[0])
-            small_best_k    = int(svd_rows["Model"].iloc[0].split("k=")[-1].strip())
-        else:
-            small_best_rmse = float(small_table["RMSE"].min())
-            small_best_k    = 10
-        plot_crossdataset_comparison(
-            small_ks        = [small_best_k],
-            small_rmse      = [small_best_rmse],
-            m1_ks           = K_VALUES,
-            m1_rmse         = rmse_list,
-            small_baselines = small_table,
-            m1_baselines    = table,
-            plots_dir       = PLOTS_DIR,
-        )
-    else:
-        logger.warning("ML-small results CSV not found; skipping comparison plot.")
-
-    total = time.perf_counter() - t_total
-    logger.info("=" * 60)
-    logger.info("ML-1M pipeline complete in %.1fs", total)
-    logger.info("  Users: %d | Items: %d | Ratings: %d",
-                df["userId"].nunique(), df["movieId"].nunique(), len(df))
-    logger.info("  Best SVD rank : k = %d", BEST_K)
-    logger.info("  Test RMSE     : %.4f", rmse_list[best_idx])
-    logger.info("  Test MAE      : %.4f", mae_list[best_idx])
-    logger.info("  k (90%% EV)  : %d", k_var)
-    logger.info("=" * 60)
+    def model(self, k):
+        inner = self._dec.model(k)
+        wrapped = _Clipped(inner)
+        wrapped.k = inner.k
+        return wrapped
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

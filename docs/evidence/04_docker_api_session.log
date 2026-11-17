@@ -1,0 +1,50 @@
+$ docker compose up -d api
+ Volume svd-based-collaborative-filtering_monitoring Creating 
+ Volume svd-based-collaborative-filtering_monitoring Creating 
+ Volume svd-based-collaborative-filtering_monitoring Created 
+ Volume svd-based-collaborative-filtering_monitoring Created 
+ Container svd-based-collaborative-filtering-api-1 Creating 
+ Container svd-based-collaborative-filtering-api-1 Created 
+ Container svd-based-collaborative-filtering-api-1 Starting 
+ Container svd-based-collaborative-filtering-api-1 Started 
+health status: healthy
+$ docker compose ps
+NAME                                      IMAGE                       COMMAND                  SERVICE   CREATED         STATUS                   PORTS
+svd-based-collaborative-filtering-api-1   svd-recommender-api:1.0.0   "uvicorn api:app --a…"   api       7 seconds ago   Up 7 seconds (healthy)   0.0.0.0:8000->8000/tcp
+
+$ curl -s localhost:8000/health
+{"status":"ok","model_loaded":true,"model_version":"svd-k20-fce385dc-6cfca4f0","api_version":"1.0.0","detail":null}
+$ curl -s "localhost:8000/recommendations/1?n=3"
+{"user_id":1,"model_version":"svd-k20-fce385dc-6cfca4f0","strategy":"svd","known_user":true,"cold_start":false,"n_requested":3,"n_returned":3,"items":[{"rank":1,"movie_id":3347,"title":"Never Cry Wolf (1983)","genres":["Adventure","Drama"],"score":5.355387,"predicted_rating":5.0},{"rank":2,"movie_id":3213,"title":"Batman: Mask of the Phantasm (1993)","genres":["Animation","Children"],"score":5.3459,"predicted_rating":5.0},{"rank":3,"movie_id":3451,"title":"Guess Who's Coming to Dinner (1967)","genres":["Drama"],"score":5.326078,"predicted_rating":5.0}],"unknown_excluded_movie_ids":[],"generated_at":"2026-11-16T21:48:25+00:00"}
+$ curl -s "localhost:8000/recommendations/999999?n=3"
+{"user_id":999999,"model_version":"svd-k20-fce385dc-6cfca4f0","strategy":"popularity_fallback","known_user":false,"cold_start":true,"n_requested":3,"n_returned":3,"items":[{"rank":1,"movie_id":356,"title":"Forrest Gump (1994)","genres":["Comedy","Drama","Romance","War"],"score":234.0,"predicted_rating":null},{"rank":2,"movie_id":318,"title":"Shawshank Redemption, The (1994)","genres":["Crime","Drama"],"score":224.0,"predicted_rating":null},{"rank":3,"movie_id":296,"title":"Pulp Fiction (1994)","genres":["Comedy","Crime","Drama","Thriller"],"score":217.0,"predicted_rating":null}],"unknown_excluded_movie_ids":[],"generated_at":"2026-11-16T21:48:25+00:00"}
+$ curl -s -w " HTTP %{http_code}" "localhost:8000/recommendations/0"
+{"error":"validation_error","detail":[{"loc":["path","user_id"],"msg":"Input should be greater than 0","type":"greater_than"}],"request_id":"982e8957259b4269"} HTTP 422
+$ curl -s -X POST localhost:8000/feedback -H content-type:application/json -d {"user_id":1,"movie_id":50,"rating":4.5}
+{"accepted":true,"stored":true,"model_version":"svd-k20-fce385dc-6cfca4f0"}
+$ docker compose restart api
+ Container svd-based-collaborative-filtering-api-1 Restarting 
+ Container svd-based-collaborative-filtering-api-1 Started 
+$ curl -s localhost:8000/health (after restart)
+{"status":"ok","model_loaded":true,"model_version":"svd-k20-fce385dc-6cfca4f0","api_version":"1.0.0","detail":null}
+$ docker compose exec api sh -c 'wc -l /app/monitoring/events.jsonl /app/data/feedback/api_feedback.csv'
+  3 /app/monitoring/events.jsonl
+  2 /app/data/feedback/api_feedback.csv
+  5 total
+$ docker compose exec api id
+uid=10001(app) gid=10001(app) groups=10001(app)
+$ docker compose logs api | tail -4
+api-1  | {"ts": "2026-11-16T21:48:32.079+00:00", "level": "INFO", "logger": "api", "message": "request", "request_id": "fb621866da3d4bad", "method": "GET", "endpoint": "/health", "status": 200, "latency_ms": 1.791}
+api-1  | INFO:     127.0.0.1:35572 - "GET /health HTTP/1.1" 200 OK
+api-1  | {"ts": "2026-11-16T21:48:34.772+00:00", "level": "INFO", "logger": "api", "message": "request", "request_id": "663be5673ba24add", "method": "GET", "endpoint": "/health", "status": 200, "latency_ms": 0.665}
+api-1  | INFO:     172.18.0.1:42348 - "GET /health HTTP/1.1" 200 OK
+$ docker compose down
+ Container svd-based-collaborative-filtering-api-1 Stopping 
+ Container svd-based-collaborative-filtering-api-1 Stopped 
+ Container svd-based-collaborative-filtering-api-1 Removing 
+ Container svd-based-collaborative-filtering-api-1 Removed 
+ Network svd-based-collaborative-filtering_default Removing 
+ Network svd-based-collaborative-filtering_default Removed 
+$ docker images
+svd-recommender-trainer:1.0.0 8b6c551a3fd6 1.28GB
+svd-recommender-api:1.0.0 fbe80201462d 396MB

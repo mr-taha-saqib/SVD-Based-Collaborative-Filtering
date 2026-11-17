@@ -1,35 +1,105 @@
 # config.yaml
-# Master configuration for the SVD Recommendation System pipeline.
-# All hardcoded values in main.py are sourced from here.
+# Master configuration for the SVD recommendation system.
+# Paths are relative to the PROJECT ROOT (the folder holding this file), not to the
+# current working directory. Environment-variable overrides are listed in .env.example.
 
 dataset:
+  name:          "ml-latest-small"
   url:           "https://files.grouplens.org/datasets/movielens/ml-latest-small.zip"
-  local_dir:     "../data"
-  ratings_path:  "../data/ml-latest-small/ratings.csv"
+  local_dir:     "data"
+  ratings_path:  "data/ml-latest-small/ratings.csv"
+  movies_path:   "data/ml-latest-small/movies.csv"
   zip_filename:  "ml-latest-small.zip"
+  # SHA-256 of the official archive (its MD5, 31a303aabbc519bd33d025e44d6c2570,
+  # matches GroupLens' published ml-latest-small.zip.md5). A mismatch aborts the run.
+  zip_sha256:    "696d65a3dfceac7c45750ad32df2c259311949efec81f0f144fdfb91ebc9e436"
+  # files.grouplens.org does not send its intermediate certificate. Python (unlike
+  # browsers) does not fetch missing intermediates, so the public intermediate is
+  # shipped here to complete the chain. TLS verification stays ON.
+  extra_ca_file: "certs/incommon-ovg2c-intermediate.pem"
   rating_scale:  [0.5, 5.0]          # valid rating bounds (inclusive)
 
 split:
-  test_fraction: 0.20                 # fraction of each user's ratings held out
-  random_state:  42                   # fixed seed for reproducibility
+  # Per-user stratified three-way split. The TEST partition is used exactly once,
+  # after the configuration has been chosen on VALIDATION.
+  test_fraction:       0.20           # fraction of each user's ratings held out for test
+  validation_fraction: 0.10           # fraction of each user's ratings used for model selection
+  random_state:        42             # fixed seed for reproducibility
 
 preprocessing:
   imputation_strategy: "zero"         # options: "zero" | "rowmean" | "colmean"
 
 model:
-  k_values:          [5, 10, 20, 50, 100, 150, 200]
-  variance_threshold: 0.90            # for automatic k selection (90% EV criterion)
-  rating_clip:       [0.5, 5.0]       # clamp predictions to valid range
+  k_values:           [5, 10, 20, 50, 100, 150, 200]
+  selection_metric:   "rmse"          # chosen on the VALIDATION partition only
+  variance_threshold: 0.90            # reported for reference (90% EV criterion)
+  rating_clip:        [0.5, 5.0]      # clamp predictions to valid range
 
 sgd_mf:
-  enabled:           true             # set false to skip the SGD-MF baseline
+  enabled:           true             # set false to skip the SGD-MF comparison
   learning_rate:     0.005
   regularization:    0.02
   epochs:            20
-  log_interval:      5                # print train RMSE every N epochs
+  log_interval:      5
+  seed:              42
+
+ranking:
+  k:                    10            # cut-off for Precision@K / Recall@K / NDCG@K
+  relevance_threshold:  4.0           # a held-out rating >= this is "relevant"
+  # Serving policy fixed a priori (not tuned): items need at least this many
+  # training ratings to be recommended. Applied identically to every ranking method
+  # and in the API. Unregularised item biases make single-rating items unreliable.
+  min_item_ratings:     5
+  # Damping for the popularity (cold-start) fallback: Bayesian average with this
+  # many pseudo-ratings at the global mean.
+  popularity_damping:   10
 
 output:
-  results_csv:  "../outputs/results_table.csv"
-  plots_dir:    "../outputs/plots"
-  log_file:     "../outputs/run.log"
-  log_level:    "INFO"                # DEBUG | INFO | WARNING
+  corrected_dir: "outputs/corrected"
+  plots_dir:     "outputs/corrected/plots"
+  log_file:      "outputs/corrected/run.log"
+  log_level:     "INFO"               # DEBUG | INFO | WARNING
+  # Historical results produced by the previous (test-set rank selection) method.
+  # Never written by the current pipeline. See outputs/HISTORICAL_RESULTS.md.
+  historical_dir: "outputs"
+
+registry:
+  dir:            "models"            # versions/<id>/ + registry.json
+  model_name:     "svd-movie-recommender"
+
+mlflow:
+  enabled:         true
+  # Local, credential-free default. Override with MLFLOW_TRACKING_URI for a server.
+  tracking_uri:    "sqlite:///mlflow.db"
+  artifact_location: "mlartifacts"
+  experiment:      "svd-movie-recommender"
+  # Register models in the MLflow Model Registry (requires a database-backed
+  # tracking URI such as sqlite:/// or a tracking server).
+  register_models: true
+
+monitoring:
+  log_dir:          "monitoring"
+  window_size:      5000              # recent requests kept in memory
+  psi_warning:      0.10
+  psi_alert:        0.25
+  min_requests_for_drift: 50
+  min_feedback_for_performance: 30
+  # Salt for pseudonymising user ids in monitoring logs (override via env in production)
+  hash_salt_env:    "SVD_MONITORING_SALT"
+
+retraining:
+  feedback_validation_fraction: 0.20  # share of NEW ratings held out for validation
+  min_new_ratings:              100
+  min_users:                    5
+  report_dir:                   "reports/retraining"
+  promotion:
+    # Candidate must reach validation RMSE <= approved - min_rmse_improvement
+    min_rmse_improvement:        0.0
+    # ... and must not degrade RMSE on the ORIGINAL validation partition by more than this
+    max_base_rmse_degradation:   0.002
+    # ... and must not lose more than this much NDCG@K on validation
+    max_ndcg_drop:               0.01
+
+api:
+  default_n: 10
+  max_n:     100
