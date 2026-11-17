@@ -108,7 +108,11 @@ jobs:
 
   real-data-pipeline:
     name: Full pipeline on MovieLens latest-small
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    # Real MovieLens download + full pipeline. Runs on main, on manual dispatch, and for the
+    # delivery branch and pull requests, so a PR is verified on real data before merge.
+    if: >-
+      github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' ||
+      github.ref == 'refs/heads/main' || github.ref == 'refs/heads/mlops-production-delivery'
     runs-on: ubuntu-latest
     needs: lint-and-test
     steps:
@@ -124,6 +128,18 @@ jobs:
           SVD_MODEL_DIR: ci-real-models
           SVD_MLFLOW_ENABLED: "false"
         run: python src/main.py --no-plots --out-dir ci-real-outputs
+      - name: Check the corrected methodology on real data
+        run: |
+          python - <<'PY'
+          import json
+          m = json.load(open("ci-real-outputs/final_metrics.json"))
+          leak = m["split"]["leakage_checks"]
+          assert leak["passed"] and leak["train_test_shared_pairs"] == 0, leak
+          assert m["selection"]["metric"] == "validation RMSE", m["selection"]
+          assert m["dataset"]["sha256"].startswith("fce385dc"), m["dataset"]["sha256"]
+          print("dataset", m["dataset"]["sha256"][:16], "| selected k", m["selection"]["selected_k"],
+                "| val RMSE %.4f | test RMSE %.4f" % (m["validation"]["svd"]["rmse"], m["test"]["svd"]["rmse"]))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: real-data-results
