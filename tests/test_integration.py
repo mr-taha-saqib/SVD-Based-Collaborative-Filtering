@@ -85,3 +85,33 @@ def test_full_lifecycle_with_api(cfg, ratings, movies, tmp_path):
             r = c.post("/model/reload")             # disabled without a token
             assert r.status_code == 404
         assert (tmp_path / "mon" / "events.jsonl").exists()
+
+
+def test_mlflow_alias_follows_registry_rollback(cfg, tmp_path, monkeypatch):
+    """Rollback must move the MLflow 'champion' alias back with the file registry."""
+    mlflow = pytest.importorskip("mlflow")
+    import retrain
+    from tracking import Tracker
+
+    cfg["mlflow"].update({"enabled": True, "tracking_uri": f"sqlite:///{tmp_path}/mlflow.db",
+                          "artifact_location": str(tmp_path / "mlartifacts"), "register_models": True})
+    tr = Tracker(cfg)
+    for tag in ("reg-v1", "reg-v2"):
+        art = tmp_path / tag
+        art.mkdir()
+        (art / "model.npz").write_bytes(b"x")
+        with tr.run(tag):
+            tr.log_artifacts(art, "model")
+            tr.set_alias("champion", tr.register_model(tag))
+    client = mlflow.MlflowClient()
+    champion = lambda: client.get_model_version_by_alias(tr.model_name, "champion").tags["registry_version"]  # noqa: E731
+    assert champion() == "reg-v2"
+    assert tr.mirror_alias("champion", "reg-v1") == "1" and champion() == "reg-v1"
+    assert tr.mirror_alias("champion", "unknown-version") is None and champion() == "reg-v1"
+
+    # the CLI rollback path calls it with the version the registry rolled back to
+    tr.set_alias("champion", "2")
+    monkeypatch.setattr(retrain, "load_config", lambda *a, **k: cfg)
+    monkeypatch.setattr(retrain.ModelRegistry, "rollback", lambda self, reason: "reg-v1")
+    assert retrain.main(["--rollback", "--reason", "test"]) == 0
+    assert champion() == "reg-v1"

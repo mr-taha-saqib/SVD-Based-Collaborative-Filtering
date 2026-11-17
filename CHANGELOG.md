@@ -1,5 +1,26 @@
 # Changelog
 
+## Post-release delivery additions to v1.0.0-mlops (2026-11-17, branch `client-delivery`)
+
+Not a new model or API version; the release tag `v1.0.0-mlops` is unchanged.
+
+### Fixed
+* `python src/retrain.py --rollback` (and `run_movietweetings.py --rollback`) now move the MLflow
+  `champion` alias back to the rolled-back registry version (`Tracker.mirror_alias`); previously the
+  alias kept pointing at the rolled-back-from version while the file registry was correct. Test
+  added (157 tests).
+* `CLIENT_DELIVERY_GUIDE.md`: install command referred to the merged delivery branch;
+  `DEPLOYMENT.md`: API image size (423 MB).
+
+### Added (documentation and demo only)
+* `CLIENT_README.md`, `TECHNICAL_DOCUMENTATION.md`, `INSTALLATION_AND_SETUP.md`, `USER_GUIDE.md`,
+  `API_REFERENCE.md`, `TESTING_AND_VALIDATION.md`, `SECURITY_AND_LIMITATIONS.md`,
+  `CLIENT_HANDOVER.md`, `LICENSE_AND_DATA_ATTRIBUTION.md`, `FINAL_DELIVERY_QA_REPORT.md`.
+* `examples/demo/` API demo with a captured run; `docs/openapi.json`.
+
+### Unchanged
+* Methodology, data, split, selected k, API behaviour and all published results.
+
 ## 1.0.0 additions (2026-11-17, session 3, PR #3)
 
 ### Security (see SECURITY.md)

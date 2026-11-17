@@ -1,0 +1,849 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "SVD Movie Recommendation API",
+        "description": "Top-N movie recommendations from a truncated-SVD collaborative-filtering model trained on MovieLens. Unknown users receive a most-popular fallback. Predicted ratings are estimates, not guarantees.",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/health": {
+            "get": {
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Health",
+                "operationId": "health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/model/info": {
+            "get": {
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Model Info",
+                "operationId": "model_info_model_info_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": true,
+                                    "type": "object",
+                                    "title": "Response Model Info Model Info Get"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations/{user_id}": {
+            "get": {
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Recommendations Get",
+                "operationId": "recommendations_get_recommendations__user_id__get",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "exclusiveMinimum": 0,
+                            "description": "MovieLens userId",
+                            "title": "User Id"
+                        },
+                        "description": "MovieLens userId"
+                    },
+                    {
+                        "name": "n",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 1000,
+                            "minimum": 1,
+                            "description": "number of recommendations",
+                            "default": 10,
+                            "title": "N"
+                        },
+                        "description": "number of recommendations"
+                    },
+                    {
+                        "name": "exclude_rated",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true,
+                            "title": "Exclude Rated"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RecommendationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/recommendations": {
+            "post": {
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Recommendations Post",
+                "operationId": "recommendations_post_recommendations_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RecommendationRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RecommendationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/predict": {
+            "post": {
+                "tags": [
+                    "recommendations"
+                ],
+                "summary": "Predict",
+                "operationId": "predict_predict_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PredictionRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PredictionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/feedback": {
+            "post": {
+                "tags": [
+                    "monitoring"
+                ],
+                "summary": "Feedback",
+                "description": "Record an observed rating (delayed ground truth) for monitoring and retraining.",
+                "operationId": "feedback_feedback_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FeedbackRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "202": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FeedbackResponse"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/metrics": {
+            "get": {
+                "tags": [
+                    "monitoring"
+                ],
+                "summary": "Metrics",
+                "operationId": "metrics_metrics_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/monitoring/summary": {
+            "get": {
+                "tags": [
+                    "monitoring"
+                ],
+                "summary": "Monitoring Summary",
+                "operationId": "monitoring_summary_monitoring_summary_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": true,
+                                    "type": "object",
+                                    "title": "Response Monitoring Summary Monitoring Summary Get"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/model/reload": {
+            "post": {
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Reload Model",
+                "description": "Reload the approved model (after a promotion). Disabled unless SVD_ADMIN_TOKEN is set.",
+                "operationId": "reload_model_model_reload_post",
+                "parameters": [
+                    {
+                        "name": "x-admin-token",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Admin-Token"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Model not available",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ErrorResponse": {
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "title": "Error"
+                    },
+                    "detail": {
+                        "title": "Detail"
+                    },
+                    "request_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Request Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "error"
+                ],
+                "title": "ErrorResponse"
+            },
+            "FeedbackRequest": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "User Id"
+                    },
+                    "movie_id": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Movie Id"
+                    },
+                    "rating": {
+                        "type": "number",
+                        "maximum": 5.0,
+                        "minimum": 0.5,
+                        "title": "Rating"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "movie_id",
+                    "rating"
+                ],
+                "title": "FeedbackRequest",
+                "example": {
+                    "movie_id": 50,
+                    "rating": 4.5,
+                    "user_id": 1
+                }
+            },
+            "FeedbackResponse": {
+                "properties": {
+                    "accepted": {
+                        "type": "boolean",
+                        "title": "Accepted"
+                    },
+                    "stored": {
+                        "type": "boolean",
+                        "title": "Stored"
+                    },
+                    "model_version": {
+                        "type": "string",
+                        "title": "Model Version"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "accepted",
+                    "stored",
+                    "model_version"
+                ],
+                "title": "FeedbackResponse"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "model_loaded": {
+                        "type": "boolean",
+                        "title": "Model Loaded"
+                    },
+                    "model_version": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Model Version"
+                    },
+                    "api_version": {
+                        "type": "string",
+                        "title": "Api Version",
+                        "default": "1.0.0"
+                    },
+                    "detail": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "model_loaded"
+                ],
+                "title": "HealthResponse"
+            },
+            "PredictionRequest": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "User Id"
+                    },
+                    "movie_id": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "Movie Id"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "movie_id"
+                ],
+                "title": "PredictionRequest",
+                "example": {
+                    "movie_id": 50,
+                    "user_id": 1
+                }
+            },
+            "PredictionResponse": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "title": "User Id"
+                    },
+                    "movie_id": {
+                        "type": "integer",
+                        "title": "Movie Id"
+                    },
+                    "predicted_rating": {
+                        "type": "number",
+                        "title": "Predicted Rating"
+                    },
+                    "method": {
+                        "type": "string",
+                        "title": "Method",
+                        "description": "svd | user_bias_only | item_bias_only | global_mean"
+                    },
+                    "known_user": {
+                        "type": "boolean",
+                        "title": "Known User"
+                    },
+                    "known_movie": {
+                        "type": "boolean",
+                        "title": "Known Movie"
+                    },
+                    "model_version": {
+                        "type": "string",
+                        "title": "Model Version"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "movie_id",
+                    "predicted_rating",
+                    "method",
+                    "known_user",
+                    "known_movie",
+                    "model_version"
+                ],
+                "title": "PredictionResponse"
+            },
+            "RecommendationRequest": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "exclusiveMinimum": 0.0,
+                        "title": "User Id",
+                        "description": "MovieLens userId"
+                    },
+                    "n": {
+                        "type": "integer",
+                        "maximum": 1000.0,
+                        "minimum": 1.0,
+                        "title": "N",
+                        "description": "number of recommendations (capped by api.max_n)",
+                        "default": 10
+                    },
+                    "exclude_rated": {
+                        "type": "boolean",
+                        "title": "Exclude Rated",
+                        "description": "never recommend movies the user already rated",
+                        "default": true
+                    },
+                    "exclude_movie_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "maxItems": 1000,
+                        "title": "Exclude Movie Ids",
+                        "description": "additional movieIds to exclude"
+                    }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                    "user_id"
+                ],
+                "title": "RecommendationRequest",
+                "example": {
+                    "exclude_movie_ids": [
+                        356
+                    ],
+                    "exclude_rated": true,
+                    "n": 5,
+                    "user_id": 1
+                }
+            },
+            "RecommendationResponse": {
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "title": "User Id"
+                    },
+                    "model_version": {
+                        "type": "string",
+                        "title": "Model Version"
+                    },
+                    "strategy": {
+                        "type": "string",
+                        "title": "Strategy",
+                        "description": "'svd' or 'popularity_fallback' (unknown user)"
+                    },
+                    "known_user": {
+                        "type": "boolean",
+                        "title": "Known User"
+                    },
+                    "cold_start": {
+                        "type": "boolean",
+                        "title": "Cold Start"
+                    },
+                    "n_requested": {
+                        "type": "integer",
+                        "title": "N Requested"
+                    },
+                    "n_returned": {
+                        "type": "integer",
+                        "title": "N Returned"
+                    },
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/RecommendedItem"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    },
+                    "unknown_excluded_movie_ids": {
+                        "items": {
+                            "type": "integer"
+                        },
+                        "type": "array",
+                        "title": "Unknown Excluded Movie Ids"
+                    },
+                    "generated_at": {
+                        "type": "string",
+                        "title": "Generated At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "user_id",
+                    "model_version",
+                    "strategy",
+                    "known_user",
+                    "cold_start",
+                    "n_requested",
+                    "n_returned",
+                    "items",
+                    "generated_at"
+                ],
+                "title": "RecommendationResponse"
+            },
+            "RecommendedItem": {
+                "properties": {
+                    "rank": {
+                        "type": "integer",
+                        "title": "Rank"
+                    },
+                    "movie_id": {
+                        "type": "integer",
+                        "title": "Movie Id"
+                    },
+                    "title": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Title",
+                        "description": "from MovieLens movies.csv; null if unavailable"
+                    },
+                    "genres": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Genres"
+                    },
+                    "score": {
+                        "type": "number",
+                        "title": "Score",
+                        "description": "ranking score (SVD: unclipped predicted rating; fallback: training rating count)"
+                    },
+                    "predicted_rating": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Predicted Rating",
+                        "description": "clipped predicted rating (SVD only)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "rank",
+                    "movie_id",
+                    "score"
+                ],
+                "title": "RecommendedItem"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    },
+                    "input": {
+                        "title": "Input"
+                    },
+                    "ctx": {
+                        "type": "object",
+                        "title": "Context"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}
