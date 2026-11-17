@@ -1,0 +1,73 @@
+17:12:49  INFO      data_loader  Downloading https://raw.githubusercontent.com/sidooms/MovieTweetings/44c525d0c766944910686c60697203cda39305d6/latest/ratings.dat
+17:12:50  INFO      data_loader  Downloaded /home/claude/svd-based-collaborative-filtering/data/movietweetings/ratings.dat (sha256 f8a46fe159d4bea1)
+17:12:50  INFO      data_loader  Downloading https://raw.githubusercontent.com/sidooms/MovieTweetings/44c525d0c766944910686c60697203cda39305d6/latest/movies.dat
+17:12:51  INFO      data_loader  Downloaded /home/claude/svd-based-collaborative-filtering/data/movietweetings/movies.dat (sha256 0403d193fe09b41b)
+17:12:51  INFO      data_loader  Downloading https://raw.githubusercontent.com/sidooms/MovieTweetings/44c525d0c766944910686c60697203cda39305d6/LICENSE
+17:12:51  INFO      data_loader  Downloaded /home/claude/svd-based-collaborative-filtering/data/movietweetings/LICENSE (sha256 ae985d01e5fe4f32)
+17:12:54  INFO      movietweetings  MovieTweetings: 921398 raw -> 593204 ratings | 8574 users | 4778 movies after 20-core
+17:12:57  INFO      data_loader  Split -> train 415550 | validation 59100 | test 118554 (users kept train-only: 0)
+17:12:59  INFO      data_loader  Matrix shape: 8574 x 4778 | Observed: 415550 | Density: 1.0144%
+17:13:10  INFO      training  SVD of 8574x4778 train matrix via randomized(n_components=220) in 6.92s
+17:13:10  INFO      evaluation  SVD k=5                         RMSE=0.6934  MAE=0.5114  N=59100  fallback=0
+17:13:10  INFO      evaluation  SVD k=10                        RMSE=0.6937  MAE=0.5113  N=59100  fallback=0
+17:13:10  INFO      evaluation  SVD k=20                        RMSE=0.6941  MAE=0.5115  N=59100  fallback=0
+17:13:10  INFO      evaluation  SVD k=50                        RMSE=0.6950  MAE=0.5118  N=59100  fallback=0
+17:13:10  INFO      evaluation  SVD k=100                       RMSE=0.6960  MAE=0.5129  N=59100  fallback=0
+17:13:10  INFO      evaluation  SVD k=150                       RMSE=0.6965  MAE=0.5134  N=59100  fallback=0
+17:13:10  INFO      evaluation  SVD k=200                       RMSE=0.6972  MAE=0.5140  N=59100  fallback=0
+17:13:10  INFO      training  Validation-selected rank k=5 (validation RMSE 0.6934)
+17:13:10  INFO      svd_model  Variance criterion (tau=90%): k* = 183  (EV=90.07%)
+17:13:14  INFO      evaluation  Global Mean                     RMSE=0.8710  MAE=0.6737  N=59100  fallback=0
+17:13:14  INFO      evaluation  User Mean                       RMSE=0.7879  MAE=0.5951  N=59100  fallback=0
+17:13:14  INFO      evaluation  Item Mean                       RMSE=0.7636  MAE=0.5714  N=59100  fallback=0
+17:13:14  INFO      evaluation  User+Item Bias                  RMSE=0.6993  MAE=0.5163  N=59100  fallback=0
+17:13:15  INFO      ranking  User+Item Bias         validation P@10=0.0017 R@10=0.0046 NDCG@10=0.0023 cov=0.003 users=7635
+17:13:15  INFO      evaluation  SVD k=5                         RMSE=0.6934  MAE=0.5114  N=59100  fallback=0
+17:13:17  INFO      ranking  SVD k=5                validation P@10=0.0021 R@10=0.0050 NDCG@10=0.0031 cov=0.013 users=7635
+17:13:18  INFO      ranking  Most Popular           validation P@10=0.0183 R@10=0.0568 NDCG@10=0.0396 cov=0.008 users=7635
+17:13:18  INFO      main  ============================================================
+17:13:18  INFO      main  FINAL TEST EVALUATION: k=5 was fixed on validation before this point
+17:13:18  INFO      main  ============================================================
+17:13:18  INFO      evaluation  Global Mean                     RMSE=0.8725  MAE=0.6768  N=118554  fallback=0
+17:13:18  INFO      evaluation  User Mean                       RMSE=0.7899  MAE=0.5982  N=118554  fallback=0
+17:13:18  INFO      evaluation  Item Mean                       RMSE=0.7622  MAE=0.5713  N=118554  fallback=0
+17:13:18  INFO      evaluation  User+Item Bias                  RMSE=0.6986  MAE=0.5170  N=118554  fallback=0
+17:13:19  INFO      ranking  User+Item Bias         test       P@10=0.0031 R@10=0.0056 NDCG@10=0.0033 cov=0.003 users=8285
+17:13:19  INFO      evaluation  SVD k=5                         RMSE=0.6930  MAE=0.5122  N=118554  fallback=0
+17:13:21  INFO      ranking  SVD k=5                test       P@10=0.0035 R@10=0.0053 NDCG@10=0.0039 cov=0.013 users=8285
+17:13:22  INFO      ranking  Most Popular           test       P@10=0.0368 R@10=0.0597 NDCG@10=0.0568 cov=0.011 users=8285
+
+VALIDATION (model selection)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 0.8710 0.6737           NaN        NaN      NaN               NaN
+     User Mean 0.7879 0.5951           NaN        NaN      NaN               NaN
+     Item Mean 0.7636 0.5714           NaN        NaN      NaN               NaN
+User+Item Bias 0.6993 0.5163        0.0017     0.0046   0.0023            0.0029
+       SVD k=5 0.6934 0.5114        0.0021     0.0050   0.0031            0.0132
+  Most Popular    NaN    NaN        0.0183     0.0568   0.0396            0.0080
+
+TEST (final, evaluated once)
+         model   rmse    mae  precision@10  recall@10  ndcg@10  catalog_coverage
+   Global Mean 0.8725 0.6768           NaN        NaN      NaN               NaN
+     User Mean 0.7899 0.5982           NaN        NaN      NaN               NaN
+     Item Mean 0.7622 0.5713           NaN        NaN      NaN               NaN
+User+Item Bias 0.6986 0.5170        0.0031     0.0056   0.0033            0.0033
+       SVD k=5 0.6930 0.5122        0.0035     0.0053   0.0039            0.0132
+  Most Popular    NaN    NaN        0.0368     0.0597   0.0568            0.0107
+17:13:23  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/01_singular_value_decay.png
+17:13:23  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/02_explained_variance.png
+17:13:23  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/03_rmse_vs_k.png
+17:13:23  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/04_mae_vs_k.png
+17:13:23  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/05_rating_distribution.png
+17:13:23  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/06_sparsity_pattern.png
+17:13:24  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/08_baseline_comparison.png
+17:13:24  INFO      visualizations  Saved plot -> /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/plots/09_latent_factors.png
+2026/11/17 17:13:25 INFO mlflow.agent.hint: Load the `mlflow-trace-instrumentation` skill at /home/claude/venv-svd/lib/python3.12/site-packages/mlflow/assistant/skills/mlflow-trace-instrumentation/SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence this.
+17:13:26  INFO      tracking  MLflow tracking -> sqlite:////home/claude/svd-based-collaborative-filtering/mlflow.db (experiment svd-movietweetings)
+17:13:28  INFO      registry  Registered model version svd-k5-cbc6d187-daaead1d
+17:13:28  INFO      tracking  MLflow registry: svd-movietweetings version 1 registered
+17:13:28  INFO      registry  Approved model version svd-k5-cbc6d187-daaead1d (previous: None)
+17:13:28  INFO      tracking  MLflow registry: alias 'champion' -> svd-movietweetings version 1
+17:13:28  INFO      tracking  MLflow run 54ec7e4a4cb84577b4d6d7c3cf63d09e finished (svd-k5-train)
+17:13:28  INFO      main  Pipeline complete in 33.3s | k=5 | val RMSE 0.6934 | test RMSE 0.6930 | version svd-k5-cbc6d187-daaead1d
+17:13:28  INFO      run_movietweetings  MovieTweetings pipeline complete: k=5

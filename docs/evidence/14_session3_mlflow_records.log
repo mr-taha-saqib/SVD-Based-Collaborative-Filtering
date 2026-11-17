@@ -1,0 +1,8 @@
+experiment svd-movietweetings: 4 runs
+experiment svd-movie-recommender: 1 runs
+experiment Default: 0 runs
+registered model svd-movie-recommender: 1 versions, aliases {'champion': 1}
+registered model svd-movietweetings: 3 versions, aliases {'champion': 3}
+MovieTweetings run: FINISHED {'val_rmse': 0.6934, 'test_rmse': 0.693} 5
+alias before: 3 svd-k5-cbc6d187-bbf03d65
+alias after: 1 svd-k5-cbc6d187-daaead1d | file registry approved: svd-k5-cbc6d187-daaead1d

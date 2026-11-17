@@ -1,0 +1,22 @@
+== MovieLens container: monitoring + drift (current code)
+ Container svd-based-collaborative-filtering-api-1 Started 
+health: healthy
+No monitoring salt configured (or the .env.example placeholder is still set); using a random per-process salt. Set SVD_MONITORING_SALT to a secret value to keep pseudonyms stable across restarts.
+normal: input ok 0.0068 | cold start 0.0
+drift (fresh process): input alert 16.7764 | cold start 1.0
+ Network svd-based-collaborative-filtering_default Removed 
+== MovieLens retraining on a registry copy (current code)
+approved before: svd-k20-fce385dc-c6b9d577
+Wrote 3000 SYNTHETIC feedback rows (noise) to /tmp/ml-fb-noise.csv
+Wrote 3000 SYNTHETIC feedback rows (new_users) to /tmp/ml-fb-new_users.csv
+$ retrain (noise)
+  "decision": "rejected_by_gate",
+  "approved_after": "svd-k20-fce385dc-c6b9d577",
+$ retrain (new_users)
+  "decision": "promoted",
+  "approved_after": "svd-k20-fce385dc-9180e770",
+$ rollback
+17:35:45  WARNING   registry  Rolled back from svd-k20-fce385dc-9180e770 to svd-k20-fce385dc-c6b9d577
+{"rolled_back_to": "svd-k20-fce385dc-c6b9d577"}
+approved after rollback: svd-k20-fce385dc-c6b9d577
+delivered registry approved: svd-k20-fce385dc-c6b9d577

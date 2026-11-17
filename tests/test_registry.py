@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
 
 import pytest
 
@@ -82,3 +84,17 @@ def test_registry_file_is_valid_json_after_writes(tmp_path):
     data = json.loads((tmp_path / "reg" / "registry.json").read_text())
     assert data["approved"] == "v1"
     assert not (tmp_path / "reg" / ".registry.lock").exists()
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX permission bits")
+def test_registered_version_is_readable_by_other_users(tmp_path):
+    """A build directory from tempfile (0700) must not make the version unreadable to the API user."""
+    import stat
+    import tempfile
+
+    reg = ModelRegistry(tmp_path / "reg")
+    with tempfile.TemporaryDirectory() as build:
+        (Path(build) / "model.npz").write_bytes(b"x")
+        vdir = reg.register(build, "v-perm", {"content_sha256": "abc"})
+    mode = stat.S_IMODE(vdir.stat().st_mode)
+    assert mode & stat.S_IROTH and mode & stat.S_IXOTH

@@ -1,0 +1,266 @@
+{
+  "methodology": "train/validation/test; rank selected on validation RMSE; test evaluated once",
+  "created_at": "2026-11-17T12:13:22Z",
+  "dataset": {
+    "name": "movietweetings@44c525d (20-core, rating/2)",
+    "sha256": "cbc6d1879ff86d45025e60d425385f684efbe0d91686a5b0bb036af7ad07fffc",
+    "n_ratings": 593204,
+    "n_users": 8574,
+    "n_items": 4778
+  },
+  "split": {
+    "method": "per-user stratified random split (seeded)",
+    "random_state": 42,
+    "validation_fraction": 0.1,
+    "test_fraction": 0.2,
+    "n_rows": {
+      "train": 415550,
+      "validation": 59100,
+      "test": 118554
+    },
+    "n_users": {
+      "train": 8574,
+      "validation": 8574,
+      "test": 8574
+    },
+    "n_items": {
+      "train": 4778,
+      "validation": 4666,
+      "test": 4772
+    },
+    "users_kept_in_train_only": 0,
+    "items_in_validation_not_in_train": 0,
+    "items_in_test_not_in_train": 0,
+    "split_sha256": "ca25d8998a1890fdcd5f91cd8d0158f29e469c5b60e4705d5f24fcbe3375aba5",
+    "dataset_sha256": "cbc6d1879ff86d45025e60d425385f684efbe0d91686a5b0bb036af7ad07fffc",
+    "leakage_checks": {
+      "train_validation_shared_pairs": 0,
+      "train_test_shared_pairs": 0,
+      "validation_test_shared_pairs": 0,
+      "duplicate_pairs_within_partitions": 0,
+      "passed": true
+    }
+  },
+  "selection": {
+    "metric": "validation RMSE",
+    "k_values": [
+      5,
+      10,
+      20,
+      50,
+      100,
+      150,
+      200
+    ],
+    "selected_k": 5,
+    "k_by_90pct_variance": 183,
+    "svd_solver": "randomized(n_components=220)"
+  },
+  "validation": {
+    "svd": {
+      "model": "SVD k=5",
+      "partition": "validation",
+      "rmse": 0.6934325017070498,
+      "mae": 0.5114195306522609,
+      "n": 59100.0,
+      "n_fallback": 0.0,
+      "precision@10": 0.0021218074656188606,
+      "recall@10": 0.004977588114887822,
+      "ndcg@10": 0.003059548776126535,
+      "hit_rate@10": 0.01990831696136215,
+      "catalog_coverage": 0.013185433235663457,
+      "ranking_users": 7635.0
+    },
+    "all_models": [
+      {
+        "model": "Global Mean",
+        "partition": "validation",
+        "rmse": 0.8709925994089851,
+        "mae": 0.6736893442140673,
+        "n": 59100,
+        "n_fallback": 0
+      },
+      {
+        "model": "User Mean",
+        "partition": "validation",
+        "rmse": 0.7879390476456278,
+        "mae": 0.5950775817583116,
+        "n": 59100,
+        "n_fallback": 0
+      },
+      {
+        "model": "Item Mean",
+        "partition": "validation",
+        "rmse": 0.7636291043806501,
+        "mae": 0.5713683009022078,
+        "n": 59100,
+        "n_fallback": 0
+      },
+      {
+        "model": "User+Item Bias",
+        "partition": "validation",
+        "rmse": 0.6993132961206951,
+        "mae": 0.5162530977623248,
+        "n": 59100,
+        "n_fallback": 0,
+        "precision@10": 0.001676489849377865,
+        "recall@10": 0.004640348359654715,
+        "ndcg@10": 0.0023423170547119784,
+        "hit_rate@10": 0.016633922724296004,
+        "catalog_coverage": 0.0029300962745918793,
+        "ranking_users": 7635
+      },
+      {
+        "model": "SVD k=5",
+        "partition": "validation",
+        "rmse": 0.6934325017070498,
+        "mae": 0.5114195306522609,
+        "n": 59100,
+        "n_fallback": 0,
+        "precision@10": 0.0021218074656188606,
+        "recall@10": 0.004977588114887822,
+        "ndcg@10": 0.003059548776126535,
+        "hit_rate@10": 0.01990831696136215,
+        "catalog_coverage": 0.013185433235663457,
+        "ranking_users": 7635
+      },
+      {
+        "model": "Most Popular",
+        "partition": "validation",
+        "rmse": null,
+        "mae": null,
+        "n": null,
+        "n_fallback": null,
+        "precision@10": 0.018323510150622134,
+        "recall@10": 0.056800897174259186,
+        "ndcg@10": 0.039584659953400055,
+        "hit_rate@10": 0.15625409299279633,
+        "catalog_coverage": 0.00795311845960653,
+        "ranking_users": 7635
+      }
+    ]
+  },
+  "test": {
+    "svd": {
+      "model": "SVD k=5",
+      "partition": "test",
+      "rmse": 0.6929740837408993,
+      "mae": 0.5122233421373884,
+      "n": 118554.0,
+      "n_fallback": 0.0,
+      "precision@10": 0.0035485817742908874,
+      "recall@10": 0.005297466098434061,
+      "ndcg@10": 0.003893020643567075,
+      "hit_rate@10": 0.03246831623415812,
+      "catalog_coverage": 0.013185433235663457,
+      "ranking_users": 8285.0
+    },
+    "all_models": [
+      {
+        "model": "Global Mean",
+        "partition": "test",
+        "rmse": 0.8725030074594111,
+        "mae": 0.676753622173136,
+        "n": 118554,
+        "n_fallback": 0
+      },
+      {
+        "model": "User Mean",
+        "partition": "test",
+        "rmse": 0.7898975682905571,
+        "mae": 0.5981876475908,
+        "n": 118554,
+        "n_fallback": 0
+      },
+      {
+        "model": "Item Mean",
+        "partition": "test",
+        "rmse": 0.7621908064603937,
+        "mae": 0.5712834977710535,
+        "n": 118554,
+        "n_fallback": 0
+      },
+      {
+        "model": "User+Item Bias",
+        "partition": "test",
+        "rmse": 0.6986076805523325,
+        "mae": 0.5169836943579662,
+        "n": 118554,
+        "n_fallback": 0,
+        "precision@10": 0.003138201569100785,
+        "recall@10": 0.005639007111450621,
+        "ndcg@10": 0.003286720838009457,
+        "hit_rate@10": 0.031140615570307784,
+        "catalog_coverage": 0.0033486814566764337,
+        "ranking_users": 8285
+      },
+      {
+        "model": "SVD k=5",
+        "partition": "test",
+        "rmse": 0.6929740837408993,
+        "mae": 0.5122233421373884,
+        "n": 118554,
+        "n_fallback": 0,
+        "precision@10": 0.0035485817742908874,
+        "recall@10": 0.005297466098434061,
+        "ndcg@10": 0.003893020643567075,
+        "hit_rate@10": 0.03246831623415812,
+        "catalog_coverage": 0.013185433235663457,
+        "ranking_users": 8285
+      },
+      {
+        "model": "Most Popular",
+        "partition": "test",
+        "rmse": null,
+        "mae": null,
+        "n": null,
+        "n_fallback": null,
+        "precision@10": 0.03684972842486421,
+        "recall@10": 0.05971751691216746,
+        "ndcg@10": 0.0568073110394986,
+        "hit_rate@10": 0.2659022329511165,
+        "catalog_coverage": 0.010673922143156132,
+        "ranking_users": 8285
+      }
+    ]
+  },
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.18.44-fc-v553-x86_64-with-glibc2.39",
+    "numpy": "2.5.5",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.18.1",
+    "mlflow": "3.18.0"
+  },
+  "git_commit": "fe2adaa2470860f0142b95a142aaec66102c65f4",
+  "registry": {
+    "version_id": "svd-k5-cbc6d187-daaead1d",
+    "approved": true,
+    "mlflow_model_version": "1"
+  },
+  "mlflow_run_id": "54ec7e4a4cb84577b4d6d7c3cf63d09e",
+  "seconds": 33.3,
+  "data_preparation": {
+    "source": "https://github.com/sidooms/MovieTweetings",
+    "commit": "44c525d0c766944910686c60697203cda39305d6",
+    "file_sha256": {
+      "ratings.dat": "f8a46fe159d4bea12d5ea38922807ce1d8e7c2563785ebc84c479357d80feb13",
+      "movies.dat": "0403d193fe09b41b2f1c5451e526d74c8c4d8629adb66646be51ba785018001f",
+      "LICENSE": "ae985d01e5fe4f32d14937099a4e871dbdc2d93d8ccc2f7a141ec4ecddcab41c"
+    },
+    "raw_ratings": 921398,
+    "raw_users": 71707,
+    "raw_items": 38013,
+    "dropped_zero_ratings": 281,
+    "dropped_duplicate_pairs": 0,
+    "min_user_ratings": 20,
+    "min_item_ratings": 20,
+    "core_iterations": 4,
+    "ratings": 593204,
+    "users": 8574,
+    "items": 4778,
+    "rating_transform": "rating_10pt / 2 -> 0.5..5.0"
+  },
+  "licence_note": "MovieTweetings (MIT, Simon Dooms). Derived from public tweets; IMDb ids. Commercial use requires the client's legal review; see docs/DATASET_LICENSING.md."
+}

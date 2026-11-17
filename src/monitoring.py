@@ -26,6 +26,7 @@ import json
 import logging
 import math
 import os
+import secrets
 import threading
 import time
 from collections import Counter, deque
@@ -63,6 +64,10 @@ def drift_status(value: float, n: int, min_n: int, warn: float, alert: float) ->
     return "ok"
 
 
+
+# Values that must never be used as the pseudonymisation salt (published defaults).
+PLACEHOLDER_SALTS = frozenset({"change-me-to-a-random-string", "changeme", "change-me"})
+
 class RecommendationMonitor:
     """In-process monitor; one instance per API process."""
 
@@ -74,9 +79,16 @@ class RecommendationMonitor:
         self.psi_alert = float(cfg.get("psi_alert", 0.25))
         self.min_requests = int(cfg.get("min_requests_for_drift", 50))
         self.min_feedback = int(cfg.get("min_feedback_for_performance", 30))
-        self.salt = os.environ.get(str(cfg.get("hash_salt_env", "SVD_MONITORING_SALT")), "")
-        if not self.salt:
-            logger.warning("No monitoring salt configured; user ids are hashed without a salt.")
+        salt = os.environ.get(str(cfg.get("hash_salt_env", "SVD_MONITORING_SALT")), "")
+        if not salt or salt in PLACEHOLDER_SALTS:
+            # User ids are small integers: an unsalted (or publicly known) salt would make
+            # the pseudonyms trivially reversible. Use a random per-process salt instead;
+            # pseudonyms are then not comparable across restarts.
+            logger.warning("No monitoring salt configured (or the .env.example placeholder is "
+                           "still set); using a random per-process salt. Set SVD_MONITORING_SALT "
+                           "to a secret value to keep pseudonyms stable across restarts.")
+            salt = secrets.token_hex(16)
+        self.salt = salt
         self.model_version = model_version
         self.log_path = None
         if log_dir is not None:

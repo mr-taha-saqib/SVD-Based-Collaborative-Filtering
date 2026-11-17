@@ -126,6 +126,8 @@ def test_reload_endpoint_protection(client, monkeypatch):
     assert client.post("/model/reload").status_code == 404
     monkeypatch.setenv("SVD_ADMIN_TOKEN", "s3cret")
     assert client.post("/model/reload", headers={"x-admin-token": "wrong"}).status_code == 403
+    assert client.post("/model/reload").status_code == 403                      # header missing
+    assert client.post("/model/reload", headers={"x-admin-token": "s3cret-"}).status_code == 403
     ok = client.post("/model/reload", headers={"x-admin-token": "s3cret"})
     assert ok.status_code == 200 and ok.json()["reloaded"]
 

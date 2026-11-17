@@ -1,0 +1,8 @@
+$ docker run svd-recommender-api:1.0.0 with models_external/movietweetings mounted read-only (cap_drop ALL, no-new-privileges)
+  first attempt failed: version directory was 0700 (registry defect, fixed in src/registry.py; existing dir chmod 755)
+health: healthy
+{"status":"ok","model_loaded":true,"model_version":"svd-k5-cbc6d187-daaead1d","api_version":"1.0.0","detail":null}
+GET /recommendations/3 -> svd ['Hamilton (2020)', 'The Salt of the Earth (2014)', 'Baraka (1992)']
+GET /recommendations/999999999 -> popularity_fallback ['Gravity (2013)', 'The Wolf of Wall Street (2013)']
+GET /recommendations/0 -> HTTP 422
+user: 10001

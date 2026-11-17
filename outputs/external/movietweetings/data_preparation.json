@@ -1,0 +1,21 @@
+{
+  "source": "https://github.com/sidooms/MovieTweetings",
+  "commit": "44c525d0c766944910686c60697203cda39305d6",
+  "file_sha256": {
+    "ratings.dat": "f8a46fe159d4bea12d5ea38922807ce1d8e7c2563785ebc84c479357d80feb13",
+    "movies.dat": "0403d193fe09b41b2f1c5451e526d74c8c4d8629adb66646be51ba785018001f",
+    "LICENSE": "ae985d01e5fe4f32d14937099a4e871dbdc2d93d8ccc2f7a141ec4ecddcab41c"
+  },
+  "raw_ratings": 921398,
+  "raw_users": 71707,
+  "raw_items": 38013,
+  "dropped_zero_ratings": 281,
+  "dropped_duplicate_pairs": 0,
+  "min_user_ratings": 20,
+  "min_item_ratings": 20,
+  "core_iterations": 4,
+  "ratings": 593204,
+  "users": 8574,
+  "items": 4778,
+  "rating_transform": "rating_10pt / 2 -> 0.5..5.0"
+}

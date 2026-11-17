@@ -128,3 +128,29 @@ Re-inspected the remote state first (no assumptions carried over from session 1)
 
 Outstanding external decisions (not completable by the delivery team): owner approval to
 merge PR #1; publishing the tag and release; written GroupLens permission or a commercially licensed / client-owned dataset before commercial use; online validation of ranking quality; client acceptance.
+
+## 8. Final completion, session 3 (2026-11-17)
+
+Remote state re-inspected first: PR #1 merged; PR #2 (release-instruction fix, `CLIENT_DELIVERY_GUIDE.md`
+only) reviewed and squash-merged as `fe2adaa`; no tags or releases existed. All work below is in
+PR #3 (`final-completion`).
+
+| Item | Result | Evidence | Status |
+|---|---|---|---|
+| Clean install | fresh clone, new Python 3.12.3 venv from `requirements.txt` + `requirements-dev.txt` (99 packages); ruff clean; **156 passed**, 83 % coverage | `docs/evidence/15_session3_clean_install_tests.log` | PASS |
+| PR #3 CI | lint + tests 3.12/3.13, Docker smoke test, real-data pipeline: all success (run 44083768024) | GitHub Actions | PASS |
+| Security review | 5 defects fixed (admin-token comparison, unsalted/placeholder pseudonyms, 0700 registry versions, writable code in the API image, base-image pip/setuptools advisories); Compose hardened (127.0.0.1, `cap_drop: ALL`, `no-new-privileges`, read-only registry); pip-audit clean for project and both images; remaining prerequisites listed | `SECURITY.md`, `docs/evidence/12_session3_docker_hardened_compose.log` | PASS (fixes) / PREREQUISITES OPEN |
+| Docker (MovieLens) | rebuilt image `9d50005416ad` (423 MB): healthy, published on 127.0.0.1 only, uid 10001, CapDrop ALL, registry read-only (write refused), personalised + fallback recommendations, 422 on user 0, feedback 202, reload 404 without token, healthy after restart with feedback and events persisted | `12_session3_docker_hardened_compose.log` | PASS |
+| Monitoring / drift (MovieLens) | normal traffic: input drift ok (PSI 0.0068); unknown users (fresh process): alert (PSI 16.78), cold start 100 %; random salt used and warned when unset | `13_session3_monitoring_retraining_movielens.log` | PASS |
+| Retraining (MovieLens, registry copy) | noise feedback rejected by the gate; new-user feedback promoted (`…9180e770`, same as session 1); rollback to `…c6b9d577`; delivered registry unchanged | same | PASS |
+| MLflow | experiments `svd-movie-recommender` (1 run, model version with alias `champion`) and `svd-movietweetings` (pipeline + 3 retraining runs); the MovieTweetings `champion` alias had followed the registry-copy promotions and was reset to version 1 (= the approved file-registry version) | `14_session3_mlflow_records.log` | PASS |
+| Dataset licensing | MovieLens: research-only, commercial licence negotiable with the University of Minnesota (not obtained). Alternatives reviewed; MovieTweetings is the only user-level movie-rating dataset found with an explicit permissive licence (MIT), but third-party (X/Twitter, IMDb) and GDPR questions remain | `docs/DATASET_LICENSING.md` | CLIENT ACTION REQUIRED |
+| MovieTweetings pipeline | checksum-pinned download, `users.dat` never read, rating / 2, 20-core: 593,204 ratings; split 415,550 / 59,100 / 118,554; k = 5 on validation (grid edge); test RMSE 0.6930 vs bias 0.6986; NDCG@10 0.0039 vs most popular 0.0568 | `docs/MOVIETWEETINGS_EVALUATION.md`, `outputs/external/movietweetings/`, `docs/evidence/movietweetings/01_pipeline_run.log` | PASS (technical) |
+| MovieTweetings API / Docker | local API and container (read-only registry, uid 10001): personalised + fallback recommendations, 422s, feedback 202; input drift ok → alert | `docs/evidence/movietweetings/03_*`, `04_*` | PASS |
+| MovieTweetings retraining (registry copy) | dry run changed nothing; rollback worked; **noise-trained candidate promoted** (tie within 0.00005 RMSE; `min_rmse_improvement` 0.0) | `docs/evidence/movietweetings/02_*` | FINDING, client policy decision |
+| Historical / MovieLens results | `outputs/` MovieLens files and `outputs/HISTORICAL_RESULTS.md` untouched | git diff | PASS |
+| Release tag `v1.0.0-mlops` | must point at the final `main` commit containing this file; in session 2 the delivery session's Git proxy refused tag pushes (`only branch updates are permitted`). Commands: `CLIENT_DELIVERY_GUIDE.md` §15 | – | see handover report |
+
+Outstanding external decisions: dataset licence (MovieLens commercial licence, MovieTweetings
+legal review, or client data); gateway with TLS, authentication and rate limiting; retraining
+promotion policy; online validation of ranking quality; client acceptance.

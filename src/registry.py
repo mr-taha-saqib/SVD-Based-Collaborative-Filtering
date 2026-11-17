@@ -152,6 +152,10 @@ class ModelRegistry:
             if tmp.exists():
                 shutil.rmtree(tmp)
             shutil.copytree(src, tmp)
+            # Builds come from tempfile.TemporaryDirectory (mode 0700) and copytree keeps that
+            # mode. Make the version readable like its files, so a registry trained by one
+            # user can be served read-only by another (e.g. the uid-10001 API container).
+            os.chmod(tmp, 0o755)
             meta = dict(metadata)
             meta.setdefault("version_id", version_id)
             meta.setdefault("registered_at", utc_now())

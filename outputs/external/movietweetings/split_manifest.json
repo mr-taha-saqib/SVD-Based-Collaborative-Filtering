@@ -1,0 +1,33 @@
+{
+  "method": "per-user stratified random split (seeded)",
+  "random_state": 42,
+  "validation_fraction": 0.1,
+  "test_fraction": 0.2,
+  "n_rows": {
+    "train": 415550,
+    "validation": 59100,
+    "test": 118554
+  },
+  "n_users": {
+    "train": 8574,
+    "validation": 8574,
+    "test": 8574
+  },
+  "n_items": {
+    "train": 4778,
+    "validation": 4666,
+    "test": 4772
+  },
+  "users_kept_in_train_only": 0,
+  "items_in_validation_not_in_train": 0,
+  "items_in_test_not_in_train": 0,
+  "split_sha256": "ca25d8998a1890fdcd5f91cd8d0158f29e469c5b60e4705d5f24fcbe3375aba5",
+  "dataset_sha256": "cbc6d1879ff86d45025e60d425385f684efbe0d91686a5b0bb036af7ad07fffc",
+  "leakage_checks": {
+    "train_validation_shared_pairs": 0,
+    "train_test_shared_pairs": 0,
+    "validation_test_shared_pairs": 0,
+    "duplicate_pairs_within_partitions": 0,
+    "passed": true
+  }
+}

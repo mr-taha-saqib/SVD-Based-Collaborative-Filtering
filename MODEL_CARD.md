@@ -39,6 +39,14 @@ reaches test RMSE 0.8737; it is a comparison model, not served.
 * Random per-user split, not temporal: results can be optimistic for future behaviour.
 * Cold-start users get non-personalised results; new movies need ratings first.
 * Predicted ratings are estimates with typical error ≈ 0.68 stars (MAE).
+* Licence: trained on MovieLens, research use only (`docs/DATASET_LICENSING.md`).
+
+## Alternative model: MovieTweetings (separate registry, not the delivered model)
+
+Same algorithm and methodology on MovieTweetings (20-core, ratings / 2): k = 5 selected on
+validation (lower edge of the grid), test RMSE 0.6930 / MAE 0.5122 vs user + item bias
+0.6986 / 0.5170; NDCG@10 0.0039 vs most popular 0.0568. Details and caveats:
+`docs/MOVIETWEETINGS_EVALUATION.md`. Not cleared for commercial use.
 
 ## Ethical considerations
 
