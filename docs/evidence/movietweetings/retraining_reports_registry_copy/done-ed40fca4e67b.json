@@ -1,0 +1,179 @@
+{
+  "timestamp": "20261117T121520185698Z",
+  "approved_version": "svd-k5-cbc6d187-4e5d023d",
+  "dry_run": false,
+  "candidate_key": "ed40fca4e67b",
+  "feedback_sha256": "fbd7468ae499d3e8fd48a9a07566e60ab4e3395c6517d3644a83c71d6100e364",
+  "base_dataset_sha256": "cbc6d1879ff86d45025e60d425385f684efbe0d91686a5b0bb036af7ad07fffc",
+  "feedback": {
+    "validation": {
+      "n_input_rows": 3000,
+      "n_output_rows": 3000,
+      "n_users": 57,
+      "n_items": 2251,
+      "n_missing_values": 0,
+      "n_out_of_range": 0,
+      "n_non_integer_ids": 0,
+      "n_off_scale_step": 0,
+      "n_duplicate_pairs": 0,
+      "duplicates_policy": "keep_latest",
+      "errors": [],
+      "warnings": [],
+      "passed": true
+    },
+    "dropped_existing_pairs": 0,
+    "n_new_ratings": 3000,
+    "n_users": 57,
+    "n_items": 2251,
+    "share_known_users": 0.0,
+    "share_known_items": 1.0,
+    "rating_mean": 3.5363333333333333,
+    "rating_histogram": {
+      "0.5": 2,
+      "1.0": 6,
+      "1.5": 50,
+      "2.0": 127,
+      "2.5": 324,
+      "3.0": 532,
+      "3.5": 739,
+      "4.0": 623,
+      "4.5": 393,
+      "5.0": 204
+    },
+    "requirements_passed": true,
+    "requirement_failures": [],
+    "n_feedback_train": 2416,
+    "n_feedback_validation": 584
+  },
+  "test_partition_used": false,
+  "git_commit": "fe2adaa2470860f0142b95a142aaec66102c65f4",
+  "candidate": {
+    "selected_k": 5,
+    "validation": {
+      "rmse": 0.7136138207644068,
+      "mae": 0.5223231892782609,
+      "base_rmse": 0.6937180135258643,
+      "ndcg@10": 0.003091179148081338,
+      "precision@10": 0.0022851207478576997,
+      "recall@10": 0.00503051243782293,
+      "catalog_coverage": 0.01297614064462118,
+      "n_validation": 60291
+    },
+    "k_sweep": [
+      {
+        "k": 5,
+        "k_effective": 5,
+        "val_rmse": 0.7136138207644068,
+        "val_mae": 0.5223231892782609,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.06596481485020793,
+        "ey_bound_normalised": NaN
+      },
+      {
+        "k": 10,
+        "k_effective": 10,
+        "val_rmse": 0.713910972946194,
+        "val_mae": 0.522224208789786,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.11036339823438042,
+        "ey_bound_normalised": NaN
+      },
+      {
+        "k": 20,
+        "k_effective": 20,
+        "val_rmse": 0.7142574677624047,
+        "val_mae": 0.5224277929842149,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.18950288699605922,
+        "ey_bound_normalised": NaN
+      },
+      {
+        "k": 50,
+        "k_effective": 50,
+        "val_rmse": 0.7150777982211882,
+        "val_mae": 0.5226965338507734,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.3769963157888303,
+        "ey_bound_normalised": NaN
+      },
+      {
+        "k": 100,
+        "k_effective": 100,
+        "val_rmse": 0.7161061742644406,
+        "val_mae": 0.5237557228686747,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.6115147830712135,
+        "ey_bound_normalised": NaN
+      },
+      {
+        "k": 150,
+        "k_effective": 150,
+        "val_rmse": 0.7165146404120234,
+        "val_mae": 0.5242693924866972,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.7969911173960286,
+        "ey_bound_normalised": NaN
+      },
+      {
+        "k": 200,
+        "k_effective": 200,
+        "val_rmse": 0.7171180336343217,
+        "val_mae": 0.5248533479747081,
+        "n": 60291,
+        "n_fallback": 0,
+        "explained_variance": 0.9482476713564626,
+        "ey_bound_normalised": NaN
+      }
+    ]
+  },
+  "approved": {
+    "version": "svd-k5-cbc6d187-4e5d023d",
+    "validation": {
+      "rmse": 0.714519676897666,
+      "mae": 0.5231662843078239,
+      "base_rmse": 0.6936733543289897,
+      "ndcg@10": 0.0032488605912101135,
+      "precision@10": 0.00236663179916318,
+      "recall@10": 0.005131103966968721,
+      "catalog_coverage": 0.013394725826705735,
+      "n_validation": 60291
+    }
+  },
+  "gate": {
+    "passed": true,
+    "criteria": [
+      {
+        "criterion": "candidate_metrics_finite",
+        "passed": true,
+        "detail": "all candidate validation metrics are finite numbers"
+      },
+      {
+        "criterion": "validation_rmse_improves",
+        "passed": true,
+        "detail": "candidate 0.7136 <= approved 0.7145 - 0.0"
+      },
+      {
+        "criterion": "base_validation_rmse_not_degraded",
+        "passed": true,
+        "detail": "candidate 0.6937 <= approved 0.6937 + 0.002"
+      },
+      {
+        "criterion": "ndcg_not_dropped",
+        "passed": true,
+        "detail": "candidate 0.0031 >= approved 0.0032 - 0.01"
+      }
+    ]
+  },
+  "decision": "promoted",
+  "candidate_version": "svd-k5-cbc6d187-bbf03d65",
+  "mlflow_model_version": "3",
+  "promoted": true,
+  "mlflow_run_id": "c13124baf00c47ccaa208c3a23dfb18f",
+  "approved_after": "svd-k5-cbc6d187-bbf03d65"
+}

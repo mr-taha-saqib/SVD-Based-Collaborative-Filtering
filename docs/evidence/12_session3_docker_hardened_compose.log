@@ -1,0 +1,17 @@
+$ docker compose up -d api  (hardened: 127.0.0.1 bind, models:ro, cap_drop ALL, no-new-privileges)
+ Container svd-based-collaborative-filtering-api-1 Started 
+health: healthy
+port binding: 127.0.0.1:8000
+CapDrop=[ALL] SecurityOpt=[no-new-privileges:true] User=app
+/app/models rw=false; /app/monitoring rw=true; /app/data/feedback rw=true; 
+{"status":"ok","model_loaded":true,"model_version":"svd-k20-fce385dc-6cfca4f0","api_version":"1.0.0","detail":null}
+svd ['Never Cry Wolf (1983)', 'Batman: Mask of the Phantasm (1993)', "Guess Who's Coming to Dinner (1967)"]
+popularity_fallback ['Forrest Gump (1994)', 'Shawshank Redemption, The (1994)']
+GET /recommendations/0 -> HTTP 422
+POST /feedback -> HTTP 202
+POST /model/reload (no token configured) -> HTTP 404
+write attempt into read-only registry: touch: cannot touch '/app/models/x': Read-only file system
+after restart: healthy
+feedback rows persisted: 3
+monitoring events persisted: 408
+ Network svd-based-collaborative-filtering_default Removed 

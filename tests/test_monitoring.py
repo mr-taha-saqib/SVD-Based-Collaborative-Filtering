@@ -84,3 +84,23 @@ def test_prometheus_registry_is_per_instance(rec, cfg):
     b = RecommendationMonitor(rec.reference, cfg["monitoring"], "b")
     a.record_error("validation")
     assert a.totals["error:validation"] == 1 and b.totals["error:validation"] == 0
+
+
+@pytest.mark.parametrize("salt", ["", "change-me-to-a-random-string"])
+def test_missing_or_placeholder_salt_is_replaced_by_random_salt(rec, cfg, monkeypatch, salt):
+    """An empty or published salt would make pseudonymised small integer ids reversible."""
+    import hashlib
+
+    monkeypatch.setenv("SVD_MONITORING_SALT", salt)
+    a = RecommendationMonitor(rec.reference, cfg["monitoring"], rec.version)
+    b = RecommendationMonitor(rec.reference, cfg["monitoring"], rec.version)
+    assert a.salt not in ("", salt) and len(a.salt) == 32
+    assert a.salt != b.salt
+    # the pseudonym cannot be recomputed from the user id with the known salt
+    known = hashlib.sha256(f"{salt}:1".encode()).hexdigest()[:16]
+    assert a.pseudonymise(1) != known
+
+
+def test_configured_salt_is_used(rec, cfg, monkeypatch):
+    monkeypatch.setenv("SVD_MONITORING_SALT", "pepper")
+    assert RecommendationMonitor(rec.reference, cfg["monitoring"], rec.version).salt == "pepper"

@@ -16,6 +16,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# The base image ships pip/setuptools versions with published advisories (pip-audit,
+# 2026-11-17); upgrade them before anything else is installed.
+RUN --mount=type=secret,id=pip_ca,required=false \
+    if [ -s /run/secrets/pip_ca ]; then export PIP_CERT=/run/secrets/pip_ca; fi; \
+    pip install --upgrade pip==26.3 setuptools==84.2.1
+
 COPY requirements-api.txt ./
 # Optional: behind a TLS-inspecting proxy, pass its CA bundle as a build secret:
 #   docker build --secret id=pip_ca,src=/path/to/ca.pem .
@@ -29,7 +35,8 @@ RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app 
 
 COPY config.yaml ./
 COPY src/ ./src/
-RUN mkdir -p /app/models /app/monitoring /app/data/feedback && chown -R app:app /app
+# Only the state directories are writable by the runtime user; code and config stay root-owned.
+RUN mkdir -p /app/models /app/monitoring /app/data/feedback && chown -R app:app /app/models /app/monitoring /app/data
 
 USER app
 EXPOSE 8000

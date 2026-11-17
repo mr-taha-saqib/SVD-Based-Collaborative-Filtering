@@ -17,7 +17,15 @@ container deployment.
 
 `Dockerfile` has two targets: `base` (API, `requirements-api.txt`, non-root user
 `app` uid 10001, health check on `/health`, port 8000) and `trainer` (adds training,
-MLflow and scripts). No secrets or data are copied into images (`.dockerignore`).
+MLflow and scripts). No secrets or data are copied into images (`.dockerignore`). Both
+upgrade the base image's pip/setuptools (pip-audit clean on 2026-11-17); in the API image
+only `models/`, `monitoring/` and `data/` are writable by uid 10001.
+
+Compose hardening (default): the API port is published on **127.0.0.1** only
+(`API_BIND`, `API_PORT`), the API container drops all Linux capabilities, sets
+`no-new-privileges` and mounts the `models` volume **read-only**; MLflow is bound to
+127.0.0.1:5000. Expose the API to other hosts only behind a TLS reverse proxy with
+authentication and rate limiting (`SECURITY.md`).
 
 ## Commands
 
@@ -65,8 +73,19 @@ and feedback are still present.
 * If outbound access to GroupLens is blocked, copy a verified `ml-latest-small.zip`
   into the `dataset` volume; the pipeline re-checks its SHA-256 before use.
 
-## Production hardening not included
+## Serving the MovieTweetings model instead
 
-TLS termination, authentication/authorisation on the API, horizontal scaling (state
-is per process), an external metrics store (Prometheus/Grafana), backups of volumes,
-and a commercial licence for MovieLens.
+```bash
+python src/run_movietweetings.py --approve --approval-reason "..."      # host, writes models_external/movietweetings
+docker run -d -p 127.0.0.1:8000:8000 --cap-drop ALL --security-opt no-new-privileges:true \
+  -v "$PWD/models_external/movietweetings:/app/models:ro" svd-recommender-api:1.0.0
+```
+
+Only after the client's legal review of the dataset (`docs/DATASET_LICENSING.md`).
+
+## Production prerequisites not included
+
+TLS termination, authentication/authorisation, rate limiting and request-size limits at a
+gateway (`SECURITY.md`), horizontal scaling (state is per process), an external metrics store
+(Prometheus/Grafana), log rotation and retention, backups of volumes, a stricter retraining
+promotion policy, and a commercial dataset licence.

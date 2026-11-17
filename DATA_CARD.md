@@ -55,3 +55,15 @@ is never disabled. Behind a TLS-inspecting proxy, point `SSL_CERT_FILE` at the p
 `POST /feedback` appends `userId,movieId,rating,timestamp` to
 `data/feedback/api_feedback.csv`. All retraining demonstrations in this repository
 used **synthetic** feedback (`scripts/generate_synthetic_feedback.py`), clearly labelled.
+
+## Alternative dataset: MovieTweetings (separate pipeline)
+
+| Item | Value |
+|---|---|
+| Source | https://github.com/sidooms/MovieTweetings, commit `44c525d0c766944910686c60697203cda39305d6` (last update 2021-11-24) |
+| Files | `latest/ratings.dat` (SHA-256 `f8a46fe1…eb13`), `latest/movies.dat` (`0403d193…001f`), `LICENSE` (`ae985d01…ab41c`); all pinned in `src/movietweetings.py` |
+| Licence | MIT (© 2013 Simon Dooms); keep the notice and cite Dooms et al., CrowdRec @ RecSys 2013. Derived from public tweets and IMDb references: **legal review required before commercial use** (`docs/DATASET_LICENSING.md`) |
+| Raw | 921,398 ratings (1–10), 71,707 users, 38,013 movies, 2013-02-28 to 2021-11-24 |
+| Prepared | 281 zero ratings dropped, ratings / 2, 20-core: 593,204 ratings, 8,574 users, 4,778 movies |
+| Privacy | `users.dat` (dataset id → real Twitter account id) is never downloaded or read; the ratings remain pseudonymous personal data because that public mapping exists |
+| Storage | downloaded to `data/movietweetings/` at runtime, git-ignored, never committed |

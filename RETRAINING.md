@@ -57,6 +57,15 @@ config) prevents re-processing the same file against the same model.
 | 5 | same file again | `rejected_data_requirements` (all pairs already known) |
 | 7 | rollback | approved pointer returned to `svd-k20-fce385dc-c6b9d577` |
 
+MovieTweetings (session 3, `python src/run_movietweetings.py --registry-dir <copy> ...`,
+evidence `docs/evidence/movietweetings/02_retraining_gate_rollback_registry_copy.log`): dry run
+passed and changed nothing; rollback worked; **a candidate trained on 3,000 random-noise ratings
+was promoted** because it tied the approved model on validation (RMSE 0.71408 vs 0.71412) and
+`min_rmse_improvement` is 0.0. The gate is therefore permissive by design: **before production,
+set a positive `min_rmse_improvement` and/or require a human approval step before promotion**
+(client policy decision; not changed here so that the verified MovieLens behaviour stays as
+documented).
+
 **Synthetic data only.** These runs demonstrate the mechanics. Real retraining needs
 genuinely observed ratings; the delivered `models/` registry was not modified by
 these demonstrations.

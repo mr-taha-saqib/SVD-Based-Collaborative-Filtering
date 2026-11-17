@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.0.0 additions (2026-11-17, session 3, PR #3)
+
+### Security (see SECURITY.md)
+* Constant-time admin-token comparison for `/model/reload`.
+* Unset or placeholder `SVD_MONITORING_SALT` no longer produces unsalted (reversible)
+  pseudonyms: a random per-process salt is used instead.
+* Model registry version directories are created 0755 instead of 0700, so a registry can be
+  served read-only by another user (the uid-10001 container).
+* API image: code and config are no longer writable by the runtime user; pip 26.3 /
+  setuptools 84.2.1 replace the base image's versions with published advisories.
+* Compose: API and MLflow published on 127.0.0.1 by default (`API_BIND`), `cap_drop: ALL`,
+  `no-new-privileges`, read-only `models` volume for the API.
+
+### Added
+* Separate MovieTweetings pipeline (`src/movietweetings.py`, `src/run_movietweetings.py`),
+  results in `outputs/external/movietweetings/`, `docs/MOVIETWEETINGS_EVALUATION.md`.
+* `docs/DATASET_LICENSING.md` (MovieLens commercial route, alternatives, MovieTweetings terms).
+* 10 tests (155 total).
+
+### Unchanged
+* MovieLens methodology, data, split, selected k and all published results.
+
 ## 1.0.0 (2026-11-17), branch `mlops-production-delivery`
 
 ### Fixed

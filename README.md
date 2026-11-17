@@ -71,6 +71,13 @@ validation; test RMSE 0.9013 / MAE 0.7070 versus 0.9318 / 0.7341 for user + item
 Historical (test-selected) results: k = 10, RMSE 0.8812. They are optimistically
 biased and not comparable; see [`outputs/HISTORICAL_RESULTS.md`](outputs/HISTORICAL_RESULTS.md).
 
+Alternative dataset (separate pipeline, `outputs/external/movietweetings/`): MovieTweetings
+(MIT-licensed by its author; commercial use still needs legal review). k = 5 chosen on
+validation (edge of the grid); test RMSE 0.6930 vs 0.6986 for user + item bias (0.5–5 scale);
+most popular again far ahead on NDCG@10 (0.0568 vs 0.0039). See
+[`docs/MOVIETWEETINGS_EVALUATION.md`](docs/MOVIETWEETINGS_EVALUATION.md) and
+[`docs/DATASET_LICENSING.md`](docs/DATASET_LICENSING.md).
+
 ## 3. Architecture
 
 ```mermaid
@@ -113,7 +120,7 @@ Details: [ARCHITECTURE.md](ARCHITECTURE.md).
 │   ├── logging_utils.py   JSON / text structured logging
 │   └── visualizations.py  figures
 ├── scripts/               synthetic data, demo model, traffic simulator, feedback generator
-├── tests/                 145 tests (unit, API, integration, MLflow, monitoring, retraining)
+├── tests/                 155 tests (unit, API, integration, MLflow, monitoring, retraining)
 ├── outputs/corrected/     corrected results, split manifest, plots
 ├── outputs/               HISTORICAL results of the previous method (labelled)
 ├── docs/evidence/         logs captured during the acceptance run
@@ -149,6 +156,11 @@ Without `--approve` the version is registered but **not** served. Useful flags:
 `--no-plots`, `--no-mlflow`, `--no-register`, `--ratings <csv>`.
 
 MovieLens 1M cross-check: `python src/run_ml1m.py` (writes `outputs/corrected/ml1m/`).
+
+MovieTweetings (separate registry `models_external/movietweetings/`, output
+`outputs/external/movietweetings/`, MLflow experiment `svd-movietweetings`):
+`python src/run_movietweetings.py [--approve --approval-reason "..."]`; gated retraining with
+`--retrain-feedback <csv> [--dry-run]`, rollback with `--rollback`.
 
 ## 7. API
 
@@ -186,7 +198,9 @@ docker compose logs -f api
 docker compose down
 ```
 
-CPU only; 1 GB RAM is ample for the API (image 396 MB). See [DEPLOYMENT.md](DEPLOYMENT.md).
+CPU only; 1 GB RAM is ample for the API (image 423 MB). The API is published on
+127.0.0.1 only by default (`API_BIND`), runs as uid 10001 with all capabilities dropped and
+mounts the registry read-only. See [DEPLOYMENT.md](DEPLOYMENT.md) and [SECURITY.md](SECURITY.md).
 
 ## 9. MLflow
 
@@ -225,7 +239,7 @@ using explicit criteria; the test set is never read. See [RETRAINING.md](RETRAIN
 ## 12. Testing and CI
 
 ```bash
-pytest                         # 145 tests, ~30 s, synthetic fixtures, no network
+pytest                         # 155 tests, ~30 s, synthetic fixtures, no network
 ruff check src tests scripts
 ```
 
@@ -238,7 +252,12 @@ manual dispatch. See [TESTING.md](TESTING.md).
 ## 13. Limitations
 
 * **Licence**: MovieLens is research-only. Commercial use requires written permission from
-  GroupLens or replacement with a commercially licensed / client-owned dataset.
+  GroupLens (the University of Minnesota offers a negotiated commercial licence) or a
+  commercially licensed / client-owned dataset. MovieTweetings is MIT-licensed by its author
+  but derived from tweets and linkable to Twitter accounts; legal review is required
+  ([`docs/DATASET_LICENSING.md`](docs/DATASET_LICENSING.md)).
+* **Security**: no authentication, TLS or rate limiting in the application; these are
+  deployment prerequisites ([SECURITY.md](SECURITY.md)).
 * Offline top-N quality of the served SVD model is far below a most-popular list
   (section 2). Use online A/B testing before relying on personalised rankings, and
   consider ranking-oriented models (implicit ALS, BPR) as future work.

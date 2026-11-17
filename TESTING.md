@@ -2,7 +2,7 @@
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                                   # 145 tests, ~35 s, offline, synthetic fixtures
+pytest                                   # 155 tests, ~35 s, offline, synthetic fixtures
 pytest -m "not performance"              # what CI runs (skips the timing-based check)
 pytest --cov=src --cov-report=term       # coverage (83 % of src/ in the acceptance run)
 ruff check src tests scripts

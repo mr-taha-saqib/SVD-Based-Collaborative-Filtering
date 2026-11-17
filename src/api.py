@@ -16,6 +16,7 @@ endpoints answer 503, so orchestration can see the problem instead of a crash lo
 from __future__ import annotations
 
 import csv
+import hmac
 import logging
 import os
 import sys
@@ -339,7 +340,7 @@ def create_app(cfg: dict[str, Any] | None = None, registry_dir: str | Path | Non
         if not expected:
             raise HTTPException(status_code=404, detail={"error": "not_found",
                                                          "detail": "reload endpoint disabled"})
-        if x_admin_token != expected:
+        if not hmac.compare_digest((x_admin_token or "").encode(), expected.encode()):
             raise HTTPException(status_code=403, detail={"error": "forbidden", "detail": "invalid admin token"})
         state.load()
         if state.recommender is None:

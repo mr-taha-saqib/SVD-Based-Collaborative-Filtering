@@ -1,0 +1,111 @@
+$ registry copy: /tmp/mt-reg (delivered registry models_external/movietweetings untouched)
+approved before: svd-k5-cbc6d187-daaead1d
+Wrote 3000 SYNTHETIC feedback rows (new_users) to /tmp/mt-fb/new_users.csv
+Wrote 3000 SYNTHETIC feedback rows (noise) to /tmp/mt-fb/noise.csv
+$ dry run (new_users)
+17:14:29  INFO      movietweetings  MovieTweetings: 921398 raw -> 593204 ratings | 8574 users | 4778 movies after 20-core
+17:14:32  INFO      data_loader  Split -> train 415550 | validation 59100 | test 118554 (users kept train-only: 0)
+17:14:32  INFO      recommender  Loaded model svd-k5-cbc6d187-daaead1d (k=5, 8574 users, 4778 items)
+17:14:34  INFO      data_loader  Matrix shape: 8631 x 4778 | Observed: 417966 | Density: 1.0135%
+17:14:43  INFO      training  SVD of 8631x4778 train matrix via randomized(n_components=220) in 6.33s
+17:14:43  INFO      evaluation  SVD k=5                         RMSE=0.6931  MAE=0.5115  N=59684  fallback=0
+17:14:43  INFO      evaluation  SVD k=10                        RMSE=0.6934  MAE=0.5114  N=59684  fallback=0
+17:14:43  INFO      evaluation  SVD k=20                        RMSE=0.6938  MAE=0.5117  N=59684  fallback=0
+17:14:43  INFO      evaluation  SVD k=50                        RMSE=0.6946  MAE=0.5119  N=59684  fallback=0
+17:14:44  INFO      evaluation  SVD k=100                       RMSE=0.6956  MAE=0.5130  N=59684  fallback=0
+17:14:44  INFO      evaluation  SVD k=150                       RMSE=0.6961  MAE=0.5135  N=59684  fallback=0
+17:14:44  INFO      evaluation  SVD k=200                       RMSE=0.6968  MAE=0.5141  N=59684  fallback=0
+17:14:44  INFO      training  Validation-selected rank k=5 (validation RMSE 0.6931)
+17:14:44  INFO      evaluation  eval                            RMSE=0.6931  MAE=0.5115  N=59684  fallback=0
+17:14:44  INFO      evaluation  eval-base                       RMSE=0.6935  MAE=0.5114  N=59100  fallback=0
+17:14:46  INFO      ranking  eval                   validation P@10=0.0018 R@10=0.0042 NDCG@10=0.0026 cov=0.013 users=7689
+17:14:46  INFO      evaluation  eval                            RMSE=0.6941  MAE=0.5124  N=59684  fallback=584
+17:14:46  INFO      evaluation  eval-base                       RMSE=0.6934  MAE=0.5114  N=59100  fallback=0
+17:14:47  INFO      ranking  eval                   validation P@10=0.0021 R@10=0.0050 NDCG@10=0.0031 cov=0.013 users=7635
+17:14:49  INFO      tracking  MLflow tracking -> sqlite:////home/claude/svd-based-collaborative-filtering/mlflow.db (experiment svd-movietweetings)
+17:14:49  INFO      tracking  MLflow run ff92b85a732a41ddaaafbfa000900ddb finished (retrain-20261117T121429499987Z)
+17:14:49  INFO      retrain  Retraining report written to /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/retraining_reports/retraining-20261117T121429499987Z.json
+17:14:49  INFO      retrain  Retraining decision: dry_run_gate_passed (approved now: svd-k5-cbc6d187-daaead1d)
+{
+  "decision": "dry_run_gate_passed",
+  "promoted": false,
+  "approved_version": "svd-k5-cbc6d187-daaead1d",
+  "candidate_version": null,
+  "approved_after": "svd-k5-cbc6d187-daaead1d"
+}
+approved after dry run: svd-k5-cbc6d187-daaead1d
+$ retrain (noise: no signal)
+17:14:54  INFO      movietweetings  MovieTweetings: 921398 raw -> 593204 ratings | 8574 users | 4778 movies after 20-core
+17:14:56  INFO      data_loader  Split -> train 415550 | validation 59100 | test 118554 (users kept train-only: 0)
+17:14:57  INFO      recommender  Loaded model svd-k5-cbc6d187-daaead1d (k=5, 8574 users, 4778 items)
+17:14:58  INFO      data_loader  Matrix shape: 8574 x 4778 | Observed: 417943 | Density: 1.0202%
+17:15:08  INFO      training  SVD of 8574x4778 train matrix via randomized(n_components=220) in 6.82s
+17:15:08  INFO      evaluation  SVD k=5                         RMSE=0.7141  MAE=0.5223  N=59707  fallback=0
+17:15:08  INFO      evaluation  SVD k=10                        RMSE=0.7144  MAE=0.5222  N=59707  fallback=0
+17:15:08  INFO      evaluation  SVD k=20                        RMSE=0.7147  MAE=0.5224  N=59707  fallback=0
+17:15:08  INFO      evaluation  SVD k=50                        RMSE=0.7155  MAE=0.5227  N=59707  fallback=0
+17:15:08  INFO      evaluation  SVD k=100                       RMSE=0.7166  MAE=0.5237  N=59707  fallback=0
+17:15:08  INFO      evaluation  SVD k=150                       RMSE=0.7170  MAE=0.5243  N=59707  fallback=0
+17:15:08  INFO      evaluation  SVD k=200                       RMSE=0.7176  MAE=0.5248  N=59707  fallback=0
+17:15:08  INFO      training  Validation-selected rank k=5 (validation RMSE 0.7141)
+17:15:09  INFO      evaluation  eval                            RMSE=0.7141  MAE=0.5223  N=59707  fallback=0
+17:15:09  INFO      evaluation  eval-base                       RMSE=0.6937  MAE=0.5121  N=59100  fallback=0
+17:15:10  INFO      ranking  eval                   validation P@10=0.0024 R@10=0.0051 NDCG@10=0.0032 cov=0.013 users=7648
+17:15:10  INFO      evaluation  eval                            RMSE=0.7141  MAE=0.5217  N=59707  fallback=0
+17:15:10  INFO      evaluation  eval-base                       RMSE=0.6934  MAE=0.5114  N=59100  fallback=0
+17:15:11  INFO      ranking  eval                   validation P@10=0.0021 R@10=0.0049 NDCG@10=0.0030 cov=0.013 users=7648
+17:15:13  INFO      tracking  MLflow tracking -> sqlite:////home/claude/svd-based-collaborative-filtering/mlflow.db (experiment svd-movietweetings)
+17:15:14  INFO      registry  Registered model version svd-k5-cbc6d187-4e5d023d
+17:15:14  INFO      tracking  MLflow registry: svd-movietweetings version 2 registered
+17:15:14  INFO      registry  Approved model version svd-k5-cbc6d187-4e5d023d (previous: svd-k5-cbc6d187-daaead1d)
+17:15:14  INFO      tracking  MLflow registry: alias 'champion' -> svd-movietweetings version 2
+17:15:14  INFO      tracking  MLflow run a31de23168c246a681462aaff3a7238d finished (retrain-20261117T121454607200Z)
+17:15:14  INFO      retrain  Retraining report written to /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/retraining_reports/retraining-20261117T121454607200Z.json
+17:15:14  INFO      retrain  Retraining decision: promoted (approved now: svd-k5-cbc6d187-4e5d023d)
+{
+  "decision": "promoted",
+  "promoted": true,
+  "approved_version": "svd-k5-cbc6d187-daaead1d",
+  "candidate_version": "svd-k5-cbc6d187-4e5d023d",
+  "approved_after": "svd-k5-cbc6d187-4e5d023d"
+}
+$ retrain (new_users)
+17:15:20  INFO      movietweetings  MovieTweetings: 921398 raw -> 593204 ratings | 8574 users | 4778 movies after 20-core
+17:15:22  INFO      data_loader  Split -> train 415550 | validation 59100 | test 118554 (users kept train-only: 0)
+17:15:22  INFO      recommender  Loaded model svd-k5-cbc6d187-4e5d023d (k=5, 8574 users, 4778 items)
+17:15:24  INFO      data_loader  Matrix shape: 8631 x 4778 | Observed: 420359 | Density: 1.0193%
+17:15:33  INFO      training  SVD of 8631x4778 train matrix via randomized(n_components=220) in 6.61s
+17:15:33  INFO      evaluation  SVD k=5                         RMSE=0.7136  MAE=0.5223  N=60291  fallback=0
+17:15:33  INFO      evaluation  SVD k=10                        RMSE=0.7139  MAE=0.5222  N=60291  fallback=0
+17:15:33  INFO      evaluation  SVD k=20                        RMSE=0.7143  MAE=0.5224  N=60291  fallback=0
+17:15:33  INFO      evaluation  SVD k=50                        RMSE=0.7151  MAE=0.5227  N=60291  fallback=0
+17:15:33  INFO      evaluation  SVD k=100                       RMSE=0.7161  MAE=0.5238  N=60291  fallback=0
+17:15:34  INFO      evaluation  SVD k=150                       RMSE=0.7165  MAE=0.5243  N=60291  fallback=0
+17:15:34  INFO      evaluation  SVD k=200                       RMSE=0.7171  MAE=0.5249  N=60291  fallback=0
+17:15:34  INFO      training  Validation-selected rank k=5 (validation RMSE 0.7136)
+17:15:34  INFO      evaluation  eval                            RMSE=0.7136  MAE=0.5223  N=60291  fallback=0
+17:15:34  INFO      evaluation  eval-base                       RMSE=0.6937  MAE=0.5121  N=59100  fallback=0
+17:15:35  INFO      ranking  eval                   validation P@10=0.0023 R@10=0.0050 NDCG@10=0.0031 cov=0.013 users=7702
+17:15:35  INFO      evaluation  eval                            RMSE=0.7145  MAE=0.5232  N=60291  fallback=584
+17:15:35  INFO      evaluation  eval-base                       RMSE=0.6937  MAE=0.5121  N=59100  fallback=0
+17:15:37  INFO      ranking  eval                   validation P@10=0.0024 R@10=0.0051 NDCG@10=0.0032 cov=0.013 users=7648
+17:15:39  INFO      tracking  MLflow tracking -> sqlite:////home/claude/svd-based-collaborative-filtering/mlflow.db (experiment svd-movietweetings)
+17:15:40  INFO      registry  Registered model version svd-k5-cbc6d187-bbf03d65
+17:15:40  INFO      tracking  MLflow registry: svd-movietweetings version 3 registered
+17:15:40  INFO      registry  Approved model version svd-k5-cbc6d187-bbf03d65 (previous: svd-k5-cbc6d187-4e5d023d)
+17:15:40  INFO      tracking  MLflow registry: alias 'champion' -> svd-movietweetings version 3
+17:15:40  INFO      tracking  MLflow run c13124baf00c47ccaa208c3a23dfb18f finished (retrain-20261117T121520185698Z)
+17:15:40  INFO      retrain  Retraining report written to /home/claude/svd-based-collaborative-filtering/outputs/external/movietweetings/retraining_reports/retraining-20261117T121520185698Z.json
+17:15:40  INFO      retrain  Retraining decision: promoted (approved now: svd-k5-cbc6d187-bbf03d65)
+{
+  "decision": "promoted",
+  "promoted": true,
+  "approved_version": "svd-k5-cbc6d187-4e5d023d",
+  "candidate_version": "svd-k5-cbc6d187-bbf03d65",
+  "approved_after": "svd-k5-cbc6d187-bbf03d65"
+}
+$ rollback
+17:15:42  WARNING   registry  Rolled back from svd-k5-cbc6d187-bbf03d65 to svd-k5-cbc6d187-4e5d023d
+{"rolled_back_to": "svd-k5-cbc6d187-4e5d023d"}
+approved after rollback: svd-k5-cbc6d187-4e5d023d
+delivered registry approved: svd-k5-cbc6d187-daaead1d

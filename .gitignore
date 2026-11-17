@@ -24,11 +24,13 @@ data/ml-latest-small/
 data/ml-latest-small.zip
 data/ml-1m/
 data/ml-1m.zip
+data/movietweetings/
 data/feedback/
 *.part
 
 # ── Model registry, experiment tracking, runtime logs ─────────
 models/
+models_external/
 mlflow.db
 mlruns/
 mlartifacts/
@@ -36,6 +38,7 @@ monitoring/
 reports/retraining/
 outputs/corrected/run.log
 outputs/corrected/ml1m/run.log
+outputs/external/*/run.log
 
 # ── Claude Code internal files ────────────────────────────────
 .claude/
@@ -59,3 +62,4 @@ mlflow-data/
 
 # Acceptance-run evidence is intentionally committed
 !docs/evidence/*.log
+!docs/evidence/**/*.log
