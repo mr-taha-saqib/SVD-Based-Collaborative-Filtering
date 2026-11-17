@@ -33,6 +33,7 @@ From the release ZIP: unzip it and `cd` into the extracted folder.
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1  [Not independently verified]
+python -m pip install --upgrade pip   # the pip bundled with some Python builds (e.g. Ubuntu's 24.0) has published advisories
 pip install -r requirements.txt -r requirements-dev.txt
 pip check
 ```
